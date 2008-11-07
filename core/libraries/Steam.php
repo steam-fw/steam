@@ -39,7 +39,22 @@ class Steam
     public  static $db_pass;
     public  static $db_name;
     public  static $db_host;
+    public  static $mc_host;
+    public  static $mc_port;
     
+    // prevent this class from being instantiated
+    private function __construct()
+    {
+        throw self::_('Exception', 'General');
+    }
+    
+    /**
+     * Initializes the Steam class by loading the configuration variables,
+     * setting the default timezone, setting the custom error and exception
+     * handlers, and connecting the the database.
+     *
+     * @return void
+     */
     public static function init()
     {
         // load the configuration file
@@ -49,10 +64,12 @@ class Steam
         self::$timezone = $timezone;
         self::$language = $language;
         self::$base_uri = $base_uri;
-        self::$db_user  = $db_user;
-        self::$db_pass  = $db_pass;
-        self::$db_name  = $db_name;
-        self::$db_host  = $db_host;
+        self::$db_user  = $mysql_user;
+        self::$db_pass  = $mysql_pass;
+        self::$db_name  = $mysql_name;
+        self::$db_host  = $mysql_host;
+        self::$mc_host  = $memcache_host;
+        self::$mc_port  = $memcache_port;
         
         // set the default timezone
         date_default_timezone_set(self::$timezone);
@@ -65,6 +82,13 @@ class Steam
         self::_('Db')->connect();
     }
     
+    /**
+     * Basic method used to access components of the Steam library. This is for
+     * use with reusable components.
+     *
+     * @return object
+     * @param string $class class identifier
+     */
     public static function _($class)
     {
         // check if the object already exists to skip unnecessary steps
@@ -79,6 +103,13 @@ class Steam
         return self::$objects[$class];
     }
     
+    /**
+     * Basic method used to access components of the Steam library. This is for
+     * use with one-time-use components.
+     *
+     * @return object
+     * @param string $class class identifier
+     */
     public static function _new($class)
     {
         // grab the arguments in an array in order to pass them to the class

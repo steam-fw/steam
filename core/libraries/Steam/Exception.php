@@ -1,8 +1,8 @@
 <?php
 /**
- * Steam configuration file
+ * Steam Exception Class
  *
- * Stores the values for the basic configuration of Steam.
+ * This class manages the throwing of Steam exceptions.
  *
  * Copyright 2008-2009 Shaddy Zeineddine
  *
@@ -28,29 +28,18 @@
  * @link http://code.google.com/p/steam-fw
  */
 
-$timezone      = 'America/Los_Angeles';
-$base_uri      = '/steam';
-
-$mysql_user    = 'root';
-$mysql_pass    = '';
-$mysql_name    = 'steam';
-$mysql_host    = 'localhost';
-
-$memcache_host = 'localhost';
-$memcache_port = '11211';
-
-/*
-$db_hosts = array(
-    'write' => 'db-master',
-    'read' => array(
-        0 => 'db-slave1',
-        1 => 'db-slave2',
-        ),
-    'search' => array(
-        0 => 'db-search1',
-        1 => 'db-search2',
-        ),
-    );
-*/
-
+class Steam_Exception extends Exception
+{
+    /**
+     * Throws the specified type of exception with an optional message.
+     *
+     * @return void
+     * @param string $type exception type
+     * @param string $message message
+     */
+    public static function construct($type, $message = NULL)
+    {
+        throw Steam::_new('Exception_' . $type, $message);
+    }
+}
 ?>
