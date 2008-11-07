@@ -1,9 +1,8 @@
 <?php
 /**
- * Steam Session Handler
+ * Steam Event Class
  *
- * This class replaces the built-in PHP session handler with a custom one with a
- * Memcache back end.
+ * This class handles application events and bindings to those events.
  *
  * Copyright 2008-2009 Shaddy Zeineddine
  *
@@ -29,11 +28,15 @@
  * @link http://code.google.com/p/steam-fw
  */
 
-class Steam_Web_Session
+class Steam_Event
 {
     private static $instance;
-    private $lifetime;
     
+    /**
+     * Creates a new instance of Steam_Event.
+     *
+     * @return object
+     */
     public static function construct()
     {
         if (!isset(self::$instance))
@@ -46,12 +49,13 @@ class Steam_Web_Session
         return self::$instance;
     }
     
+    /**
+     * This class can only be instantiated using the construct method.
+     *
+     * @return void
+     */
     private function __construct()
     {
-        $this->lifetime = ini_get('session.gc_maxlifetime');
-        session_set_save_handler(array(&$this, 'open'), array(&$this, 'close'), array(&$this, 'read'), array(&$this, 'write'), array(&$this, 'destroy'), array(&$this, 'clean'));
-        session_start();
-        register_shutdown_function(array(&$this, '__destruct'));
     }
 
     /**
@@ -65,53 +69,15 @@ class Steam_Web_Session
         throw Steam::_('Exception', 'General');
     }
     
-    public function __destruct()
+    /**
+     * Fires the specified event.
+     *
+     * @return void
+     * @param string $event event name
+     */
+    public function trigger($event)
     {
-        session_write_close();
-    }
-    
-    public function open($save_path, $session_name)
-    {
-        return true;
-    }
-    
-    public function close()
-    {
-        return true;
-    }
-    
-    public function read($session_id)
-    {
-        return Steam::_('Cache')->get('session', $session_id);
-    }
-    
-    public function write($session_id, $session_data)
-    {
-        if (Steam::_('Cache')->set('session', $session_id, $session_data, $this->lifetime))
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-    
-    public function destroy($session_id)
-    {
-        if (Steam::_('Cache')->delete('session', $session_id))
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-    
-    public function clean($max_lifetime)
-    {
-        return true;
     }
 }
+
 ?>

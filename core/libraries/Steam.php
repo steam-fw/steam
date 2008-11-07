@@ -83,8 +83,7 @@ class Steam
     }
     
     /**
-     * Basic method used to access components of the Steam library. This is for
-     * use with reusable components.
+     * Basic method used to access components of the Steam library.
      *
      * @return object
      * @param string $class class identifier
@@ -94,9 +93,27 @@ class Steam
         // check if the object already exists to skip unnecessary steps
         if (!array_key_exists($class, self::$objects))
         {
-            // if an object doesn't exist, create a new one
+            // form the actual class name from the class identifier
+            $class_name = 'Steam_' . str_replace('/', '_', $class);
+            
+            // any extra arguments get passed to the class
             $args = func_get_args();
-            self::$objects[$class] = call_user_func_array(array(__CLASS__, '_new'), $args);
+            array_shift($args);
+            
+            // include the class file
+            require_once self::$base_dir . 'core/libraries/Steam/' . $class . '.php';
+            
+            // if the class has the factory method, it should not be reused
+            if (method_exists($class_name, 'factory'))
+            {
+                // return a new instance of the class
+                return call_user_func_array(array($class_name, 'factory'), $args);
+            }
+            else
+            {
+                // store an instance of the class
+                self::$objects[$class] = call_user_func_array(array($class_name, 'construct'), $args);
+            }
         }
         
         // return the object for the specified class
@@ -104,23 +121,21 @@ class Steam
     }
     
     /**
-     * Basic method used to access components of the Steam library. This is for
-     * use with one-time-use components.
+     * Initializes the Zend Autoloader to enable the use of the Zend
+     * Framework.
      *
-     * @return object
-     * @param string $class class identifier
+     * @return void
      */
-    public static function _new($class)
+    public static function Zend()
     {
-        // grab the arguments in an array in order to pass them to the class
-        $args  = func_get_args();
-        $class = array_shift($args);
+        // add the Zend library path to the include path
+        set_include_path(self::$base_dir . 'core/libraries/Zend' . PATH_SEPARATOR . get_include_path());
         
-        // include the class file
-        require_once self::$base_dir . 'core/libraries/Steam/' . $class . '.php';
+        // include the Zend Loader class
+        require_once "Zend/Loader.php";
         
-        // create a new instance of the class and return it
-        return call_user_func_array(array('Steam_' . str_replace('/', '_', $class), 'construct'), $args);
+        // activate the autoloader
+        Zend_Loader::registerAutoload();
     }
 }
 

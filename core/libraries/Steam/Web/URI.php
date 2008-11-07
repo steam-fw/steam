@@ -1,0 +1,148 @@
+<?php
+/**
+ * Steam URI Class
+ *
+ * This class contains utilities for interacting with URIs.
+ *
+ * Copyright 2008-2009 Shaddy Zeineddine
+ *
+ * This file is part of Steam, a PHP application framework.
+ *
+ * Steam is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Steam is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @category Frameworks
+ * @package Steam
+ * @copyright 2008-2009 Shaddy Zeineddine
+ * @license http://www.gnu.org/licenses/gpl.txt GPL v3 or later
+ * @link http://code.google.com/p/steam-fw
+ */
+
+class Steam_Web_URI
+{
+    protected $uri;
+    public    $site_id;
+    public    $page_code;
+    
+    /**
+     * Returns a string representation of the URI.
+     *
+     * @return string
+     */
+    public function __toString()
+    {
+        return $this->uri;
+    }
+    
+    /**
+     * @see __construct
+     */
+    public static function factory($uri = NULL)
+    {
+        $class = __CLASS__;
+        
+        return new $class($uri);
+    }
+    
+    /**
+     * Creates a new Steam_Web_URI object from a URI. If a URI is not specified,
+     * it will be taken from the current request.
+     *
+     * @return object
+     * @param string $uri URI
+     */
+    public function __construct($uri = NULL)
+    {
+        if (is_null($uri))
+        {
+            $this->scheme = 'http://';
+            $this->domain = $_SERVER['HTTP_HOST'];
+            $this->path   = $_SERVER['REQUEST_URI'];
+            
+            $this->uri = $this->scheme . $this->domain . $this->path;
+        }
+        else
+        {
+            $this->uri = $uri;
+            
+            preg_match('/([a-z]+:\\/\\/)([a-z][a-z0-9.-]*)(\\/.*)?/i', $this->uri, $matches);
+            
+            if (!array_key_exists(3, $matches))
+            {
+                throw Steam::_('Exception', 'InvalidType', gettext('The supplied string is not a valid URI.'));
+            }
+            
+            $this->scheme = $matches[1];
+            $this->domain = $matches[2];
+            $this->path   = $matches[3];
+        }
+    }
+    
+    /**
+     * parses the given URI or the current URI and extracts the site_id and
+     * page_code from it.
+     *
+     * @return void
+     * @param string $uri URI
+     */
+    public function parse()
+    {
+        try
+        {
+            $portal_data = Steam::_('Cache')->get('portal', $this->domain . $this->path);
+        }
+        catch (Steam_Exception_NotCached $exception)
+        {
+            $portal_data = Steam::_('Db')->select_row('SELECT site_id, path FROM ' . Steam::$db_name . '.portals WHERE \'' . Steam::_('Db')->escape($this->domain) . '\' LIKE domain AND \'' . Steam::_('Db')->escape($this->path) . '\' LIKE CONCAT(\'' . Steam::_('Db')->escape(Steam::$base_uri) . '\', path) ORDER BY portal_sequence ASC');
+            
+            Steam::_('Cache')->set('portal', $this->domain . $this->path, $portal_data);
+        }
+        
+        $this->site_id    = $portal_data['site_id'];
+        $this->page_code = preg_replace('/^' . preg_quote(Steam::$base_uri . trim($portal_data['path'], '%'), '/') . '/i', '', $this->path);
+        
+        return $this;
+    }
+    
+    public function get_uri()
+    {
+        return $this->uri;
+    }
+    
+    public function get_scheme()
+    {
+        return $this->scheme;
+    }
+    
+    public function get_domain()
+    {
+        return $this->domain;
+    }
+    
+    public function get_path()
+    {
+        return $this->path;
+    }
+    
+    public function get_site_id()
+    {
+        return $this->site_id;
+    }
+    
+    public function get_page_code()
+    {
+        return $this->page_code;
+    }
+}
+
+?>

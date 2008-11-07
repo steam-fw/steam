@@ -28,11 +28,11 @@
  * @link http://code.google.com/p/steam-fw
  */
 
+// identify the current interface
+Steam::$interface = 'web';
+
 // initialize the user session using a memcache based custom session handler
 Steam::_('Web/Session')->start();
-
-// indicate that errors will be output over HTTP
-Steam::_('Error')->output('http');
 
 // determine what file to fetch based on the request URI
 Steam::_('Web/URI')->parse();

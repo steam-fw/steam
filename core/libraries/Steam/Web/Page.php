@@ -1,8 +1,8 @@
 <?php
 /**
- * Steam Initializer
+ * Steam Page Class
  *
- * This script initializes the Steam environment.
+ * This class is used to create documents to output to browsers.
  *
  * Copyright 2008-2009 Shaddy Zeineddine
  *
@@ -28,32 +28,27 @@
  * @link http://code.google.com/p/steam-fw
  */
 
-// first thing's first, activate output buffering
-ob_start();
-
-// use plain text errors because Steam handles error output
-ini_set('html_errors', 0);
-
-// identify the directory where Steam resides
-$base_dir = str_replace('core/initializer.php', '', __FILE__);
-
-// include the Steam class
-require_once $base_dir . 'core/libraries/Steam.php';
-
-// move the base_dir var to the Steam class and unset the temporary var
-Steam::$base_dir = $base_dir;
-unset($base_dir);
-
-// initialize the Steam class, this loads the config
-Steam::init();
-
-// include useful functions to augment PHP's built-in functions
-require_once Steam::$base_dir . 'core/functions.php';
-
-// initialize the Zend Framework
-Steam::Zend();
-
-// fire the ready event
-Steam::_('Event')->trigger('ready');
+class Steam_Web_Page
+{
+    /**
+     * @see __construct
+     */
+    public static function factory($type = NULL)
+    {
+        $class = __CLASS__;
+        
+        return new $class($type);
+    }
+    
+    /**
+     * Creates a new Steam_Web_Page object of the specified type.
+     *
+     * @return object
+     * @param string $type document type
+     */
+    public function __construct($type = NULL)
+    {
+    }
+}
 
 ?>
