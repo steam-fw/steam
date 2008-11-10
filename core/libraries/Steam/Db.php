@@ -30,38 +30,62 @@
 
 class Steam_Db
 {
+    /**
+     * The type of server being used {MySQL, etc}
+     */
     public    static $server_type;
+    
+    /**
+     * An array of arrays of server parameters
+     */
     protected static $server_parameters;
+    
+    /**
+     * An array of server connections
+     */
     protected static $servers;
     
     /**
-     * This class can only be instantiated using the construct method.
+     * Adds a database server of the specified role to the pool. At least one
+     * write master is required. It is recommended to only write to one server.
+     * Servers can by of write, read, or search role. Steam_Exception_Database
+     * is thrown if another role is specified.
      *
+     * @throws Steam_Exception_Database
      * @return void
+     * @param string $role server role {write, read, search}
+     * @param array $parameters server parameters {host, user, password, etc}
      */
-    private function __construct()
+    public static function add_server($role, $parameters)
     {
-    }
-    
-    public static function add_server($type, $parameters)
-    {
-        switch ($type)
+        switch ($role)
         {
             case 'write':
             case 'read':
             case 'search':
-                self::$server_parameters[$type][] = $parameters;
+                self::$server_parameters[$role][] = $parameters;
                 break;
             default:
-                throw new Steam_Exception_Database(sprintf(gettext('Invalid server type: %s, must be either "write", "read", or "search".'), $type));
+                throw new Steam_Exception_Database(sprintf(gettext('Invalid server role: %s, must be either "write", "read", or "search".'), $role));
         }
     }
     
-    protected static function select_server($type)
+    /**
+     * Selects a server of the specified role at random to be used for the
+     * remainder of the execution and returns its connection parameters. If
+     * there are no servers available for the specified role, it defaults to a
+     * write server. If there are no write servers, Steam_Exception_Database is
+     * thrown.
+     *
+     * @throws Steam_Exception_Database
+     * @return array
+     * @param string $role server role
+     */
+    protected static function select_server($role)
     {
-        if (!isset(self::$server_parameters[$type]))
+        if (!isset(self::$server_parameters[$role]))
         {
-            if ($type == 'write' or !isset(self::$server_parameters['write']))
+            if ($role == 'write' or !isset(self::$server_parameters['write']))
             {
                 throw new Steam_Exception_Database(gettext('A master database server has not been defined.'));
             }
@@ -71,9 +95,16 @@ class Steam_Db
             }
         }
         
-        return self::$server_parameters[$type][array_rand(self::$server_parameters[$type])];
+        return self::$server_parameters[$role][array_rand(self::$server_parameters[$role])];
     }
     
+    /**
+     * Connects to the database servers added by add_server. If the database
+     * server type is not supported, Steam_Exception_Database is thrown.
+     *
+     * @throws Steam_Exception_Database
+     * @return void
+     */
     public static function connect()
     {
         switch (self::$server_type)
@@ -90,16 +121,31 @@ class Steam_Db
         self::$servers['search'] = new $class(self::select_server('search'));
     }
     
+    /**
+     * Returns a database object for writing.
+     *
+     * @return object
+     */
     public static function write()
     {
         return self::$servers['write'];
     }
     
+    /**
+     * Returns a database object for reading.
+     *
+     * @return object
+     */
     public static function read()
     {
         return self::$servers['read'];
     }
     
+    /**
+     * Returns a database object for searching.
+     *
+     * @return object
+     */
     public static function search()
     {
         return self::$servers['search'];

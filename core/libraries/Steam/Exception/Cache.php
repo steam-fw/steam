@@ -29,11 +29,11 @@
  */
 
 
-class Steam_Exception_NotCached extends Steam_Exception
+class Steam_Exception_NotCache extends Steam_Exception
 {
     protected function setMessage(&$message)
     {
-        $message = gettext('The requested data does not exist in the cache.');
+        $message = gettext('An unknown memory cache exception has occurred.');
     }
 }
 
