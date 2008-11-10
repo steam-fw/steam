@@ -29,13 +29,11 @@
  */
 
 
-class Steam_Exception_Database extends Exception
+class Steam_Exception_Database extends Steam_Exception
 {
-    public static function construct($message = NULL)
+    protected function setMessage(&$message)
     {
-        $class = __CLASS__;
-        
-        return new $class($message);
+        $message = gettext('An unknown database exception has occurred.');
     }
 }
 

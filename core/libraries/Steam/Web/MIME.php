@@ -30,7 +30,7 @@
 
 class Steam_Web_MIME
 {
-    protected $mime_types = '
+    protected static $mime_types = '
 application/andrew-inset ez
 application/mac-binhex40 hqx
 application/mac-compactpro cpt
@@ -149,24 +149,6 @@ video/x-ogg ogm ogg
 video/x-sgi-movie movie
 x-conference/x-cooltalk ice
 ';
-    private static $instance;
-    
-    /**
-     * Creates a new instance of Steam_Web_MIME.
-     *
-     * @return object
-     */
-    public static function construct()
-    {
-        if (!isset(self::$instance))
-        {
-            $class = __CLASS__;
-            
-            self::$instance = new $class;
-        }
-        
-        return self::$instance;
-    }
     
     /**
      * This class can only be instantiated using the construct method.
@@ -176,17 +158,6 @@ x-conference/x-cooltalk ice
     private function __construct()
     {
     }
-    
-    /**
-     * This class cannot be cloned.
-     *
-     * @throws Steam_Exception_General when cloning is attempted
-     * @return void
-     */
-    public function __clone()
-    {
-        throw Steam::_('Exception', 'General');
-    }
 
     /**
      * This method determines the files MIME type from the file's extension. If
@@ -195,11 +166,11 @@ x-conference/x-cooltalk ice
      * @return bool|string
      * @param string $file file path or name
      */
-    public function get_type($file)
+    public static function get_type($file)
     {
         if (preg_match('/.+\\.([^\\.]+)$/', $file, $extension))
         {
-            if (preg_match('/(\\S+)( \\S+)* ' . $extension[1] . '( \\S+)*/', $this->mime_types, $mime_type))
+            if (preg_match('/(\\S+)( \\S+)* ' . $extension[1] . '( \\S+)*/', self::$mime_types, $mime_type))
             {
                 return $mime_type[1];
             }

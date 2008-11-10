@@ -29,13 +29,11 @@
  */
 
 
-class Steam_Exception_General extends Exception
+class Steam_Exception_General extends Steam_Exception
 {
-    public static function construct($message = NULL)
+    protected function setMessage(&$message)
     {
-        $class = __CLASS__;
-        
-        return new $class($message);
+        $message = gettext('A general exception has occurred.');
     }
 }
 

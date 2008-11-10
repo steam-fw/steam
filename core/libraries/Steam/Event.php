@@ -30,25 +30,6 @@
 
 class Steam_Event
 {
-    private static $instance;
-    
-    /**
-     * Creates a new instance of Steam_Event.
-     *
-     * @return object
-     */
-    public static function construct()
-    {
-        if (!isset(self::$instance))
-        {
-            $class = __CLASS__;
-            
-            self::$instance = new $class;
-        }
-        
-        return self::$instance;
-    }
-    
     /**
      * This class can only be instantiated using the construct method.
      *
@@ -57,17 +38,6 @@ class Steam_Event
     private function __construct()
     {
     }
-
-    /**
-     * This class cannot be cloned.
-     *
-     * @throws Steam_Exception_General when cloning is attempted
-     * @return void
-     */
-    public function __clone()
-    {
-        throw Steam::_('Exception', 'General');
-    }
     
     /**
      * Fires the specified event.
@@ -75,7 +45,7 @@ class Steam_Event
      * @return void
      * @param string $event event name
      */
-    public function trigger($event)
+    public static function trigger($event)
     {
     }
 }

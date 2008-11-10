@@ -32,16 +32,7 @@ class Steam_Web_Page
 {
     protected $layout;
     protected $components = array();
-    
-    /**
-     * @see __construct
-     */
-    public static function factory($layout = NULL)
-    {
-        $class = __CLASS__;
-        
-        return new $class($layout);
-    }
+    protected $substitutions = array();
     
     /**
      * Creates a new Steam_Web_Page object from the specified layout.
@@ -60,9 +51,14 @@ class Steam_Web_Page
      * @return void
      * @param object $component Steam_Web_Page_Component
      */
-    public function add(Steam_Web_Page_Component $component, $destination)
+    public function insert($destination, Steam_Web_Page_Component $component)
     {
-        $this->components[] = array($component, $destination);
+        $this->components[] = array($destination, $component);
+    }
+    
+    public function set($destination, $string)
+    {
+        $this->substitutions[] = array($destination, $string);
     }
     
     /**
@@ -72,16 +68,23 @@ class Steam_Web_Page
      */
     public function display()
     {
-        $page = file_get_contents(Steam::$base_dir . 'sites/' . Steam::$site_name . '/layouts/' . $layout);
+        $page = file_get_contents(Steam::$base_dir . 'sites/' . Steam::$site_name . '/layouts/' . $this->layout);
+        
+        foreach ($this->substitutions as &$substitution)
+        {
+            $page = str_replace('<<<' . $substitution[0] . '>>>', $substitution[1], $page);
+            $substitution = NULL;
+        }
+        unset($substitution);
         
         foreach ($this->components as &$component)
         {
-            $page = str_replace('<<<' . $component[1] . '>>>', $component[0], $page);
+            $page = str_replace('<<<' . $component[0] . '>>>', $component[1], $page);
             $component = NULL;
         }
         unset($component);
         
-        if ($content_type = Steam::_('Web/MIME')->get_type($layout))
+        if ($content_type = Steam_Web_MIME::get_type($this->layout))
         {
             header('Content-Type: ' . $content_type);
         }

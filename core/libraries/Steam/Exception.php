@@ -28,18 +28,28 @@
  * @link http://code.google.com/p/steam-fw
  */
 
-class Steam_Exception extends Exception
+abstract class Steam_Exception extends Exception
 {
-    /**
-     * Throws the specified type of exception with an optional message.
-     *
-     * @return void
-     * @param string $type exception type
-     * @param string $message message
-     */
-    public static function construct($type, $message = NULL)
+    public function __construct($message = NULL, $code = NULL, $file = NULL, $line = NULL)
     {
-        throw Steam::_new('Exception_' . $type, $message);
+        if (is_null($message))
+        {
+            $this->setMessage($message);
+        }
+        
+        parent::__construct($message, $code);
+        
+        if (!is_null($file))
+        {
+            $this->file = $file;
+        }
+        
+        if (!is_null($line))
+        {
+            $this->line = $line;
+        }
     }
+    
+    abstract protected function setMessage(&$message);
 }
 ?>

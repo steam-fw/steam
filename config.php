@@ -28,29 +28,21 @@
  * @link http://code.google.com/p/steam-fw
  */
 
-$timezone      = 'America/Los_Angeles';
-$base_uri      = '/steam';
+$locale           = 'en_US.utf8';
+$timezone         = 'America/Los_Angeles';
+$base_uri         = '/steam';
 
-$mysql_user    = 'root';
-$mysql_pass    = '';
-$mysql_name    = 'steam';
-$mysql_host    = 'localhost';
+$memcache_host    = 'localhost';
+$memcache_port    = '11211';
 
-$memcache_host = 'localhost';
-$memcache_port = '11211';
-
-/*
-$db_hosts = array(
-    'write' => 'db-master',
-    'read' => array(
-        0 => 'db-slave1',
-        1 => 'db-slave2',
-        ),
-    'search' => array(
-        0 => 'db-search1',
-        1 => 'db-search2',
-        ),
+$db_server_type   = 'mysql';
+$db_write_master  = array(
+    'host'        => 'localhost',
+    'user'        => 'root',
+    'password'    => '',
+    'database'    => 'steam',
     );
-*/
+$db_read_slaves   = array();
+$db_search_slaves = array();
 
 ?>

@@ -41,13 +41,13 @@ class Steam_Db_MySQL
     public    $last_query_time  = 0;
     public    $total_query_time = 0;
     
-    public function connect($parameters)
+    public function __construct($parameters)
     {
         $this->mysqli = new mysqli($parameters['host'],  $parameters['user'], $parameters['password'], $parameters['database']);
         
         if ($this->mysqli->connect_errno)
         {
-            throw Steam::_('Exception', 'Database', $this->mysqli->connect_error);
+            throw new Steam_Exception_Database($this->mysqli->connect_error);
         }
     }
     
@@ -62,7 +62,7 @@ class Steam_Db_MySQL
         
         if ($this->mysqli->errno)
         {
-            throw Steam::_('Exception', 'Database', $this->mysqli->error);
+            throw new Steam_Exception_Database($this->mysqli->error);
         }
     }
 
@@ -75,7 +75,7 @@ class Steam_Db_MySQL
         
         if ($this->mysqli->errno)
         {
-            throw Steam::_('Exception', 'Database', $this->mysqli->error);
+            throw new Steam_Exception_Database($this->mysqli->error);
         }
         
         $this->last_query_time   = $end_time - $start_time;

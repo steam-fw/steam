@@ -76,14 +76,18 @@ class Steam_Web
      * @return void
      * @param string $page_code page code
      */
-    public function load_page($page_code = '')
+    public static function load(Steam_Web_URI $uri)
     {
-        Steam::$page_code = ($page_code) ? $page_code: 'default';
-        unset($page_code);
+        $page_code = $uri->get_page_code();
+        
+        if (!$page_code)
+        {
+            $page_code = 'default';
+        }
         
         try
         {
-            include_once Steam::$base_dir . 'sites/' . Steam::$site_id . '/pages/' . Steam::$page_code . '.php';
+            include_once Steam::$base_dir . 'sites/' . $uri->get_site_name() . '/pages/' . $page_code . '.php';
         }
         catch (Steam_Exception_FileNotFound $exception)
         {

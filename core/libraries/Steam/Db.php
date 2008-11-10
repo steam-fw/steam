@@ -30,101 +30,79 @@
 
 class Steam_Db
 {
-    protected $driver;
-    protected $master;
-    protected $slaves;
-    protected $slave;
-    private static $instance;
-    
-    /**
-     * Creates a new instance of Steam_Db.
-     *
-     * @return object
-     */
-    public static function construct($driver, $parameters)
-    {
-        if (!isset(self::$instance))
-        {
-            $class = __CLASS__;
-            
-            self::$instance = new $class($driver, $parameters);
-        }
-        
-        return self::$instance;
-    }
+    public    static $server_type;
+    protected static $server_parameters;
+    protected static $servers;
     
     /**
      * This class can only be instantiated using the construct method.
      *
      * @return void
      */
-    private function __construct($driver, $parameters)
+    private function __construct()
     {
-        switch (strtolower($driver))
+    }
+    
+    public static function add_server($type, $parameters)
+    {
+        switch ($type)
         {
-            case 'mysql':
-                $this->driver = 'MySQL';;
+            case 'write':
+            case 'read':
+            case 'search':
+                self::$server_parameters[$type][] = $parameters;
                 break;
             default:
-                throw Steam::_('Exception', 'Database', 'Unsupported database server.');
+                throw new Steam_Exception_Database(sprintf(gettext('Invalid server type: %s, must be either "write", "read", or "search".'), $type));
         }
-        $this->master = $parameters;
     }
     
-    /**
-     * This class cannot be cloned.
-     *
-     * @throws Steam_Exception_General when cloning is attempted
-     * @return void
-     */
-    public function __clone()
+    protected static function select_server($type)
     {
-        throw Steam::_('Exception', 'General');
-    }
-    
-    public function add_server($parameters, $type = NULL)
-    {
-        if (is_null($type))
+        if (!isset(self::$server_parameters[$type]))
         {
-            $type = 'default';
-        }
-        
-        $this->slaves[$type][] = $parameters;
-    }
-    
-    public function master()
-    {
-        if (!array_key_exists('object', $this->master))
-        {
-            $this->master['object'] = Steam::_('Db/' . $this->driver, $this->master);
-        }
-        
-        return $this->master['object'];
-    }
-    
-    public function slave($type = NULL)
-    {
-        if (is_null($type))
-        {
-            $type = 'default';
-        }
-        
-        if (!array_key_exists($type, $this->slave))
-        {
-            if (!array_key_exists($type, $this->slaves))
+            if ($type == 'write' or !isset(self::$server_parameters['write']))
             {
-                throw Steam::_('Exception', 'General');
+                throw new Steam_Exception_Database(gettext('A master database server has not been defined.'));
             }
-            
-            $this->slave[$type] = Steam::_('Db/' . $this->driver, array_rand($this->slaves[$type]));
+            else
+            {
+                return self::select_server('write');
+            }
         }
         
-        return $this->slave[$type];
+        return self::$server_parameters[$type][array_rand(self::$server_parameters[$type])];
     }
     
-    public function __call($method, $arguments)
+    public static function connect()
     {
-        return call_user_func_array(array($this->master(), $method), $arguments);
+        switch (self::$server_type)
+        {
+            case 'mysql':
+                $class = 'Steam_Db_MySQL';
+                break;
+            default:
+                throw Steam_Exception_Database(sprintf(gettext('Unsupported database server: %s.'), self::$server_type));
+        }
+        
+        self::$servers['write']  = new $class(self::select_server('write'));
+        self::$servers['read']   = new $class(self::select_server('read'));
+        self::$servers['search'] = new $class(self::select_server('search'));
+    }
+    
+    public static function write()
+    {
+        return self::$servers['write'];
+    }
+    
+    public static function read()
+    {
+        return self::$servers['read'];
+    }
+    
+    public static function search()
+    {
+        return self::$servers['search'];
     }
 }
 

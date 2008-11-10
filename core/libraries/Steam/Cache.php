@@ -30,80 +30,66 @@
 
 class Steam_Cache
 {
-    private static $instance;
-    private $memcache;
-    
-    public static function construct()
-    {
-        if (!isset(self::$instance))
-        {
-            $class = __CLASS__;
-            
-            self::$instance = new $class;
-        }
-        
-        return self::$instance;
-    }
+    protected static $memcache;
     
     private function __construct()
     {
-        $this->memcache = new Memcache;
-        $this->memcache->connect(Steam::$mc_host, Steam::$mc_port);
     }
     
-    public function __destruct()
+    public static function connect($host, $port = NULL)
     {
-        $this->memcache->close();
-    }
-
-    public function __clone()
-    {
-        throw Steam::_('Exception', 'General');
+        self::$memcache = new Memcache;
+        self::$memcache->connect($host, $port);
     }
     
-    public function add($context, $identifier, $value)
+    public static function close()
     {
-        return $this->memcache->add(md5($context . $identifier), $value);
+        self::$memcache->close();
     }
     
-    public function decrement($context, $identifier, $value)
+    public static function add($context, $identifier, $value)
     {
-        return $this->memcache->decrement(md5($context . $identifier), $value);
+        return self::$memcache->add(md5($context . $identifier), $value);
     }
     
-    public function delete($context, $identifier)
+    public static function decrement($context, $identifier, $value)
     {
-        return $this->memcache->delete(md5($context . $identifier));
+        return self::$memcache->decrement(md5($context . $identifier), $value);
     }
     
-    public function flush()
+    public static function delete($context, $identifier)
     {
-        return $this->memcache->flush();
+        return self::$memcache->delete(md5($context . $identifier));
     }
     
-    public function get($context, $identifier)
+    public static function flush()
     {
-        if (!$value = $this->memcache->get(md5($context . $identifier)))
+        return self::$memcache->flush();
+    }
+    
+    public static function get($context, $identifier)
+    {
+        if (!$value = self::$memcache->get(md5($context . $identifier)))
         {
-            throw Steam::_('Exception', 'NotCached');
+            throw new Steam_Exception_NotCached;
         }
         
         return $value;
     }
     
-    public function increment($context, $identifier, $value)
+    public static function increment($context, $identifier, $value)
     {
-        return $this->memcache->increment(md5($context . $identifier), $value);
+        return self::$memcache->increment(md5($context . $identifier), $value);
     }
     
-    public function replace($context, $identifier, $value)
+    public static function replace($context, $identifier, $value)
     {
-        return $this->memcache->replace(md5($context . $identifier), $value);
+        return self::$memcache->replace(md5($context . $identifier), $value);
     }
     
-    public function set($context, $identifier, $value)
+    public static function set($context, $identifier, $value)
     {
-        return $this->memcache->set(md5($context . $identifier), $value);
+        return self::$memcache->set(md5($context . $identifier), $value);
     }
 }
 

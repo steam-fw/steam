@@ -31,8 +31,12 @@
 class Steam_Web_URI
 {
     protected $uri;
-    public    $site_id;
-    public    $page_code;
+    protected $scheme;
+    protected $domain;
+    protected $path;
+    protected $site_id;
+    protected $site_name;
+    protected $page_code;
     
     /**
      * Returns a string representation of the URI.
@@ -42,16 +46,6 @@ class Steam_Web_URI
     public function __toString()
     {
         return $this->uri;
-    }
-    
-    /**
-     * @see __construct
-     */
-    public static function factory($uri = NULL)
-    {
-        $class = __CLASS__;
-        
-        return new $class($uri);
     }
     
     /**
@@ -86,6 +80,8 @@ class Steam_Web_URI
             $this->domain = $matches[2];
             $this->path   = $matches[3];
         }
+        
+        $this->parse();
     }
     
     /**
@@ -95,23 +91,22 @@ class Steam_Web_URI
      * @return void
      * @param string $uri URI
      */
-    public function parse()
+    protected function parse()
     {
         try
         {
-            $portal_data = Steam::_('Cache')->get('portal', $this->domain . $this->path);
+            $portal_data = Steam_Cache::get('portal', $this->domain . $this->path);
         }
         catch (Steam_Exception_NotCached $exception)
         {
-            $portal_data = Steam::_('Db')->select_row('SELECT site_id, path FROM ' . Steam::$db_name . '.portals WHERE \'' . Steam::_('Db')->escape($this->domain) . '\' LIKE domain AND \'' . Steam::_('Db')->escape($this->path) . '\' LIKE CONCAT(\'' . Steam::_('Db')->escape(Steam::$base_uri) . '\', path) ORDER BY portal_sequence ASC');
+            $portal_data = Steam_Db::read()->select_row('SELECT portals.site_id, sites.site_name, portals.path FROM portals CROSS JOIN sites ON sites.site_id = portals.site_id WHERE \'' . Steam_Db::read()->escape($this->domain) . '\' LIKE domain AND \'' . Steam_Db::read()->escape($this->path) . '\' LIKE CONCAT(\'' . Steam_Db::read()->escape(Steam::$base_uri) . '\', path) ORDER BY portal_sequence ASC');
             
-            Steam::_('Cache')->set('portal', $this->domain . $this->path, $portal_data);
+            Steam_Cache::set('portal', $this->domain . $this->path, $portal_data);
         }
         
-        $this->site_id    = $portal_data['site_id'];
-        $this->page_code = preg_replace('/^' . preg_quote(Steam::$base_uri . trim($portal_data['path'], '%'), '/') . '/i', '', $this->path);
-        
-        return $this;
+        $this->site_id   = $portal_data['site_id'];
+        $this->site_name = $portal_data['site_name'];
+        $this->page_code = preg_replace('/^' . preg_quote(Steam::$base_uri . trim($portal_data['path'], '%'), '/') . '/i', '', rtrim($this->path, '/'));
     }
     
     public function get_uri()
@@ -137,6 +132,11 @@ class Steam_Web_URI
     public function get_site_id()
     {
         return $this->site_id;
+    }
+    
+    public function get_site_name()
+    {
+        return $this->site_name;
     }
     
     public function get_page_code()

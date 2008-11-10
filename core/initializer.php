@@ -28,11 +28,8 @@
  * @link http://code.google.com/p/steam-fw
  */
 
-// first thing's first, activate output buffering
+// first thing's first, begin output buffering
 ob_start();
-
-// use plain text errors because Steam handles error output
-ini_set('html_errors', 0);
 
 // identify the directory where Steam resides
 $base_dir = str_replace('core/initializer.php', '', __FILE__);
@@ -45,15 +42,12 @@ Steam::$base_dir = $base_dir;
 unset($base_dir);
 
 // initialize the Steam class, this loads the config
-Steam::init();
+Steam::initialize();
 
 // include useful functions to augment PHP's built-in functions
 require_once Steam::$base_dir . 'core/functions.php';
 
-// initialize the Zend Framework
-Steam::Zend();
-
 // fire the ready event
-Steam::_('Event')->trigger('ready');
+Steam_Event::trigger('ready');
 
 ?>

@@ -32,15 +32,12 @@
 Steam::$interface = 'web';
 
 // initialize the user session using a memcache based custom session handler
-Steam::_('Web/Session')->start();
-
-// determine what file to fetch based on the request URI
-Steam::_('Web/URI')->parse();
+Steam_Web_Session::start();
 
 // load the requested page
-Steam::_('Web/Page')->load();
+Steam_Web::load(new Steam_Web_URI());
 
 // fire the unload event which occurs at the end of execution
-Steam::_('Event')->trigger('unload');
+Steam_Event::trigger('unload');
 
 ?>

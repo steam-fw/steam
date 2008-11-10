@@ -31,63 +31,45 @@
 
 class Steam_Web_Session
 {
-    private static $instance;
-    private $lifetime;
-    
-    public static function construct()
-    {
-        if (!isset(self::$instance))
-        {
-            $class = __CLASS__;
-            
-            self::$instance = new $class;
-        }
-        
-        return self::$instance;
-    }
+    protected static $lifetime;
     
     private function __construct()
     {
-        $this->lifetime = ini_get('session.gc_maxlifetime');
-        session_set_save_handler(array(&$this, 'open'), array(&$this, 'close'), array(&$this, 'read'), array(&$this, 'write'), array(&$this, 'destroy'), array(&$this, 'clean'));
+    }
+    
+    public static function start()
+    {
+        self::$lifetime = ini_get('session.gc_maxlifetime');
+        session_set_save_handler('Steam_Web_Session::open', 'Steam_Web_Session::close', 'Steam_Web_Session::read', 'Steam_Web_Session::write', 'Steam_Web_Session::destroy', 'Steam_Web_Session::clean');
         session_start();
-        register_shutdown_function(array(&$this, '__destruct'));
-    }
-
-    /**
-     * This class cannot be cloned.
-     *
-     * @throws Steam_Exception_General when cloning is attempted
-     * @return void
-     */
-    public function __clone()
-    {
-        throw Steam::_('Exception', 'General');
+        #register_shutdown_function('session_write_close');
     }
     
-    public function __destruct()
-    {
-        session_write_close();
-    }
-    
-    public function open($save_path, $session_name)
+    public static function open($save_path, $session_name)
     {
         return true;
     }
     
-    public function close()
+    public static function close()
     {
         return true;
     }
     
-    public function read($session_id)
+    public static function read($session_id)
     {
-        return Steam::_('Cache')->get('session', $session_id);
+        try
+        {
+            return Steam_Cache::get('session', $session_id);
+        }
+        catch (Steam_Exception_NotCached $exception)
+        {
+            session_regenerate_id();
+        }
     }
     
-    public function write($session_id, $session_data)
+    public static function write($session_id, $session_data)
     {
-        if (Steam::_('Cache')->set('session', $session_id, $session_data, $this->lifetime))
+        if (Steam_Cache::set('session', $session_id, $session_data, $this->lifetime))
         {
             return true;
         }
@@ -97,9 +79,9 @@ class Steam_Web_Session
         }
     }
     
-    public function destroy($session_id)
+    public static function destroy($session_id)
     {
-        if (Steam::_('Cache')->delete('session', $session_id))
+        if (Steam_Cache::delete('session', $session_id))
         {
             return true;
         }
@@ -109,9 +91,10 @@ class Steam_Web_Session
         }
     }
     
-    public function clean($max_lifetime)
+    public static function clean($max_lifetime)
     {
         return true;
     }
 }
+
 ?>

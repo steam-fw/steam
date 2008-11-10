@@ -30,19 +30,7 @@
 
 class Steam_Error
 {
-    private static $instance;
-    
-    public static function construct()
-    {
-        if (!isset(self::$instance))
-        {
-            $class = __CLASS__;
-            
-            self::$instance = new $class;
-        }
-        
-        return self::$instance;
-    }
+    protected static $errors = array();
     
     /**
      * This class can only be instantiated using the construct method.
@@ -51,18 +39,6 @@ class Steam_Error
      */
     private function __construct()
     {
-        define_syslog_variables();
-    }
-    
-    /**
-     * This class cannot be cloned.
-     *
-     * @throws Steam_Exception_General when cloning is attempted
-     * @return void
-     */
-    public function __clone()
-    {
-        throw Steam::_('Exception', 'General');
     }
     
     /**
@@ -71,7 +47,7 @@ class Steam_Error
      * @throws Steam_Exception... multiple types
      * @return void
      */
-    public function error_handler($code, $message, $file, $line, $context)
+    public static function error_handler($code, $message, $file, $line, $context)
     {
         $map = array(
             'failed to open stream: No such file or directory' => 'FileNotFound',
@@ -81,11 +57,13 @@ class Steam_Error
         {
             if (is_numeric(strpos($message, $error)))
             {
-                throw Steam::_('Exception', $exception, $message);
+                $exception = 'Steam_Exception_' . $exception;
+                
+                throw new $exception($message, $code, $file, $line);
             }
         }
         
-        throw Steam::_('Exception', 'General', $message);
+        throw new Steam_Exception_PHP($message, $code, $file, $line);
     }
     
     /**
@@ -93,11 +71,16 @@ class Steam_Error
      *
      * @return void
      */
-    public function exception_handler($exception)
+    public static function exception_handler($exception)
     {
         try
         {
-            $this->log(LOG_ERR, Steam::$site_name . ': ' . $exception->getType() . ': ' . $exception->getMessage() . '; ' . $exception->getFile() . ' @ line ' . $exception->getLine());
+            #if (($exception->getCode() & error_reporting()) == $exception->getCode())
+            #{
+                self::$errors[] = $exception->getMessage() . ' on line ' . $exception->getLine() . ' of ' . $exception->getFile();
+            #}
+            
+            self::log(LOG_ERR, Steam::$site_name . ': ' . $exception->getType() . ': ' . $exception->getMessage() . '; ' . $exception->getFile() . ' @ line ' . $exception->getLine());
         }
         catch (Exception $exception)
         {
@@ -112,11 +95,34 @@ class Steam_Error
      * @param int $priority syslog priority
      * @param string $message log message
      */
-    public function log($priority, $message)
+    public static function log($priority, $message)
     {
+        define_syslog_variables();
         openlog('Steam/' . Steam::$interface, LOG_ODELAY, Steam::$syslog_facility);
         syslog($priority, $message);
         closelog();
+    }
+    
+    public static function report()
+    {
+        $errors = self::$errors;
+        self::$errors = array();
+        return $errors;
+    }
+    
+    public static function shutdown()
+    {
+        if (count(self::$errors))
+        {
+            foreach (self::$errors as $error)
+            {
+                echo $error . '<br>' . "\n";
+            }
+        }
+        elseif ($error = error_get_last())
+        {
+            echo $error['message'] . ' on line ' . $error['line'] . ' of ' . $error['file'];
+        }
     }
 }
 

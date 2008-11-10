@@ -35,16 +35,6 @@ class Steam_Web_Page_Component
     protected $data;
     
     /**
-     * @see __construct
-     */
-    public static function factory($name)
-    {
-        $class = __CLASS__;
-        
-        return new $class($name);
-    }
-    
-    /**
      * Creates a new Steam_Web_Page object from the specified layout.
      *
      * @return object
@@ -70,7 +60,7 @@ class Steam_Web_Page_Component
         $args = func_get_args();
         $name = array_shift($args);
         
-        if (array_key_exists($args[0]);
+        if (array_key_exists($args[0]))
         {
             $value = array_shift($args);
             if (is_null($value))
@@ -112,7 +102,15 @@ class Steam_Web_Page_Component
         $options = $this->options;
         $data    = $this->data;
         
-        return include Steam::$base_dir . 'sites/' . Steam::$site_name . '/components/' . $name . '.php';
+        try
+        {
+            $output = include Steam::$base_dir . 'sites/' . Steam::$site_name . '/components/' . $this->name . '.php';
+            return $output;
+        }
+        catch (Exception $exception)
+        {
+            return '';
+        }
     }
 }
 
