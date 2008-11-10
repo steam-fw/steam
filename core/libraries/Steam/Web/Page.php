@@ -30,24 +30,65 @@
 
 class Steam_Web_Page
 {
+    protected $layout;
+    protected $components = array();
+    
     /**
      * @see __construct
      */
-    public static function factory($type = NULL)
+    public static function factory($layout = NULL)
     {
         $class = __CLASS__;
         
-        return new $class($type);
+        return new $class($layout);
     }
     
     /**
-     * Creates a new Steam_Web_Page object of the specified type.
+     * Creates a new Steam_Web_Page object from the specified layout.
      *
      * @return object
-     * @param string $type document type
+     * @param string $layout page layout
      */
-    public function __construct($type = NULL)
+    public function __construct($layout = NULL)
     {
+        $this->layout = $layout;
+    }
+    
+    /**
+     * Adds the passed component to the page at the specified destination.
+     *
+     * @return void
+     * @param object $component Steam_Web_Page_Component
+     */
+    public function add(Steam_Web_Page_Component $component, $destination)
+    {
+        $this->components[] = array($component, $destination);
+    }
+    
+    /**
+     * Constructs the page and outputs it to the user's browser.
+     *
+     * @return void
+     */
+    public function display()
+    {
+        $page = file_get_contents(Steam::$base_dir . 'sites/' . Steam::$site_name . '/layouts/' . $layout);
+        
+        foreach ($this->components as &$component)
+        {
+            $page = str_replace('<<<' . $component[1] . '>>>', $component[0], $page);
+            $component = NULL;
+        }
+        unset($component);
+        
+        if ($content_type = Steam::_('Web/MIME')->get_type($layout))
+        {
+            header('Content-Type: ' . $content_type);
+        }
+        
+        header('Content-Length: ' . strlen($page));
+        
+        echo $page;
     }
 }
 
