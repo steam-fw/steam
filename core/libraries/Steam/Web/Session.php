@@ -61,7 +61,7 @@ class Steam_Web_Session
         {
             return Steam_Cache::get('session', $session_id);
         }
-        catch (Steam_Exception_NotCached $exception)
+        catch (Steam_Exception_Cache $exception)
         {
             session_regenerate_id();
         }

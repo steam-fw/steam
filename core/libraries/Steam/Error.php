@@ -122,11 +122,11 @@ class Steam_Error
      */
     public static function shutdown()
     {
-        if (count(self::$errors))
+        if (count(self::$exceptions))
         {
-            foreach (self::$errors as $error)
+            foreach (self::$exceptions as $exception)
             {
-                echo $error . '<br>' . "\n";
+                echo $exception . '<br>' . "\n";
             }
         }
         elseif ($error = error_get_last())
