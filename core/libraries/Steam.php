@@ -2,7 +2,7 @@
 /**
  * Steam Class
  *
- * This class provides access to the Steam library and configuration variables.
+ * This class initializes the Steam environment and stores important variables.
  *
  * Copyright 2008-2009 Shaddy Zeineddine
  *
@@ -30,19 +30,30 @@
 
 class Steam
 {
-    protected static $objects = array();
-    public    static $site_id;
-    public    static $site_name = 'test';
-    public    static $page_code;
-    public    static $interface;
-    public    static $base_uri;
-    public    static $base_dir;
-    public    static $config;
+    /**
+     * The Steam base URI, the URI of the directory that contains index.php
+     */
+    public static $base_uri;
     
-    // prevent this class from being instantiated
-    private function __construct()
-    {
-    }
+    /**
+     * The filesystem directory that contains the config and index.php
+     */
+    public static $base_dir;
+    
+    /**
+     * The current interface identifier
+     */
+    public static $interface;
+    
+    /**
+     * The current application identifier
+     */
+    public static $app_id;
+    
+    /**
+     * The current application name, the name of its directory
+     */
+    public static $app_name;
     
     /**
      * Initializes the Steam class by loading the configuration variables,
@@ -95,12 +106,13 @@ class Steam
             Steam_Db::add_server('read', $db_read_slave);
         }
         
-        // add any slave searc servers
+        // add any slave search servers
         foreach ($db_search_slaves as $db_search_slave)
         {
             Steam_Db::add_server('search', $db_read_slave);
         }
         
+        // select the servers and connect
         Steam_Db::connect();
     }
 }

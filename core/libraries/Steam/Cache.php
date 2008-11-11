@@ -90,7 +90,7 @@ class Steam_Cache
      */
     public static function add($context, $identifier, $value)
     {
-        if (!self::$memcache->add(md5($context . $identifier), $value);
+        if (!self::$memcache->add(md5($context . $identifier), $value))
         {
             throw new Steam_Exception_Cache(gettext('Data already exists with the specified identifier.'));
         }

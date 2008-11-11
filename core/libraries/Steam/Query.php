@@ -30,6 +30,8 @@
 
 class Steam_Query
 {
+    public $page;
+    public $results;
 }
 
 ?>
