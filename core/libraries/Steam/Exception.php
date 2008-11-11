@@ -30,6 +30,14 @@
 
 abstract class Steam_Exception extends Exception
 {
+    /**
+     * Creates a new instance of Steam_Exception.
+     *
+     * @param string $message message
+     * @param int $code code
+     * @param string $file file
+     * @param int $line line number
+     */
     public function __construct($message = NULL, $code = NULL, $file = NULL, $line = NULL)
     {
         if (is_null($message))
@@ -50,6 +58,12 @@ abstract class Steam_Exception extends Exception
         }
     }
     
+    /**
+     * Sets the message to a default message in the current language.
+     *
+     * @return void
+     * @param &$message localized error message
+     */
     abstract protected function setMessage(&$message);
 }
 ?>

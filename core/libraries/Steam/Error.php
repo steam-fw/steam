@@ -30,24 +30,23 @@
 
 class Steam_Error
 {
-    protected static $errors = array();
-    
     /**
-     * This class can only be instantiated using the construct method.
-     *
-     * @return void
+     * Exceptions which were caught by the default exception handler.
      */
-    private function __construct()
-    {
-    }
+    protected static $exceptions = array();
     
     /**
      * Custom error handler which converts errors into exceptions.
      *
      * @throws Steam_Exception... multiple types
      * @return void
+     * @param int $level php error level
+     * @param string $message error string
+     * @param string $file file
+     * @param int $line line number
+     * @param array $context error context
      */
-    public static function error_handler($code, $message, $file, $line, $context)
+    public static function error_handler($level, $message, $file, $line, $context)
     {
         $map = array(
             'failed to open stream: No such file or directory' => 'FileNotFound',
@@ -59,26 +58,25 @@ class Steam_Error
             {
                 $exception = 'Steam_Exception_' . $exception;
                 
-                throw new $exception($message, $code, $file, $line);
+                throw new $exception($message, $level, $file, $line);
             }
         }
         
-        throw new Steam_Exception_PHP($message, $code, $file, $line);
+        throw new Steam_Exception_PHP($message, $level, $file, $line);
     }
     
     /**
-     * Custom exception handler which logs uncaught exceptions using syslog.
+     * Custom exception handler which stores and logs uncaught exceptions using
+     * syslog.
      *
      * @return void
+     * @param object $exception exception
      */
     public static function exception_handler($exception)
     {
         try
         {
-            #if (($exception->getCode() & error_reporting()) == $exception->getCode())
-            #{
-                self::$errors[] = $exception->getMessage() . ' on line ' . $exception->getLine() . ' of ' . $exception->getFile();
-            #}
+            self::$exceptions[] = $exception->getMessage() . ' on line ' . $exception->getLine() . ' of ' . $exception->getFile();
             
             self::log(LOG_ERR, Steam::$site_name . ': ' . $exception->getType() . ': ' . $exception->getMessage() . '; ' . $exception->getFile() . ' @ line ' . $exception->getLine());
         }
@@ -103,13 +101,25 @@ class Steam_Error
         closelog();
     }
     
+    /**
+     * Outputs an array of all exceptions that were handled by the custom
+     * exception handler and clears the array afterwards.
+     *
+     * @return array
+     */
     public static function report()
     {
-        $errors = self::$errors;
-        self::$errors = array();
-        return $errors;
+        $exceptions = self::$exceptions;
+        self::$exceptions = array();
+        return $exceptions;
     }
     
+    /**
+     * Displays any errors that were triggered near the end of execution which
+     * may not be properly handled by the custom error or exception handlers.
+     *
+     * @return void
+     */
     public static function shutdown()
     {
         if (count(self::$errors))

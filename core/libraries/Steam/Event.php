@@ -31,15 +31,6 @@
 class Steam_Event
 {
     /**
-     * This class can only be instantiated using the construct method.
-     *
-     * @return void
-     */
-    private function __construct()
-    {
-    }
-    
-    /**
      * Fires the specified event.
      *
      * @return void

@@ -32,14 +32,10 @@
 class Steam_Locale
 {
     /**
-     * This class can only be instantiated using the construct method.
+     * Returns a list of all the locales available on the current system.
      *
-     * @return void
+     * @return array
      */
-    private function __construct()
-    {
-    }
-    
     public static function get_locales()
     {
         $locales = `locale --all-locales`;
@@ -47,11 +43,25 @@ class Steam_Locale
         return explode("\n", $locales);
     }
     
+    /**
+     * Returns a list of all the timezones available on the current system.
+     *
+     * @return array
+     */
     public static function get_timezones()
     {
         return DateTimeZone::listIdentifiers();
     }
     
+    /**
+     * Sets the specified locale category to the specified locale. If the locale
+     * is set to 0, it will return the current setting. If the locale is not
+     * valid, Steam_Exception_Locale is thrown.
+     *
+     * @throws Steam_Exception_Locale
+     * @return mixed
+     * @param int $category LC_ constant
+     */
     public static function set($category, $locale = 0)
     {
         if (!$locale)
@@ -62,11 +72,20 @@ class Steam_Locale
         {
             if (!setlocale($category, $locale))
             {
-                throw Steam::_('Exception', 'Locale', sprintf(gettext('Unknown locale identifier: %s'), $locale));
+                throw new Steam_Exception_Locale(sprintf(gettext('Unknown locale identifier: %s'), $locale));
             }
         }
     }
     
+    /**
+     * Sets the default timezone or returns the current timezone setting if no
+     * timezone is specified. If the timezone is not valid,
+     * Steam_Exception_Locale is thrown.
+     *
+     * @throws Steam_Exception_Locale
+     * @return mixed
+     * @param string $timezone timezone identifier
+     */
     public static function timezone($timezone = NULL)
     {
         if (is_null($timezone))
@@ -77,7 +96,7 @@ class Steam_Locale
         {
             if (!date_default_timezone_set($timezone))
             {
-                throw Steam::_('Exception', 'Locale', sprintf(gettext('Unknown timezone identifier: %s'), $timezone));
+                throw Steam_Exception_Locale(sprintf(gettext('Unknown timezone identifier: %s'), $timezone));
             }
         }
     }

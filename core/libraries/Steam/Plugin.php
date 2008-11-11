@@ -1,8 +1,9 @@
 <?php
 /**
- * Steam Web Class
+ * Steam Plugin Class
  *
- * This class loads pages.
+ * This class is the basis for plugins which extend or enhance default
+ * functionality.
  *
  * Copyright 2008-2009 Shaddy Zeineddine
  *
@@ -28,33 +29,8 @@
  * @link http://code.google.com/p/steam-fw
  */
 
-class Steam_Web
+class Steam_Plugin
 {
-    /**
-     * Loads a page based on the given page code. Page code defaults to
-     * "default".
-     *
-     * @return void
-     * @param object $uri Steam_Web_URI object
-     */
-    public static function load(Steam_Web_URI $uri)
-    {
-        $page_code = $uri->get_page_code();
-        
-        if (!$page_code)
-        {
-            $page_code = 'default';
-        }
-        
-        try
-        {
-            include_once Steam::$base_dir . 'sites/' . $uri->get_site_name() . '/pages/' . $page_code . '.php';
-        }
-        catch (Steam_Exception_FileNotFound $exception)
-        {
-            include_once Steam::$base_dir . 'sites/global/error_pages/HTTP_404.php';
-        }
-    }
 }
 
 ?>
