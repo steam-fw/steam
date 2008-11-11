@@ -28,6 +28,7 @@
  * @link http://code.google.com/p/steam-fw
  */
 
+require_once 'Steam/Exception.php';
 
 class Steam_Exception_Database extends Steam_Exception
 {

@@ -28,8 +28,9 @@
  * @link http://code.google.com/p/steam-fw
  */
 
+require_once 'Steam/Exception.php';
 
-class Steam_Exception_NotCache extends Steam_Exception
+class Steam_Exception_Cache extends Exception
 {
     protected function setMessage(&$message)
     {

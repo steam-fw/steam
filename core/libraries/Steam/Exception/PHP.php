@@ -28,6 +28,8 @@
  * @link http://code.google.com/p/steam-fw
  */
 
+require_once 'Steam/Exception.php';
+
 class Steam_Exception_PHP extends Steam_Exception
 {
     protected function setMessage(&$message)
