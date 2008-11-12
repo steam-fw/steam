@@ -62,13 +62,22 @@ class Steam_Web_Page
     }
     
     /**
-     * Constructs the page and outputs it to the user's browser.
+     * Constructs the page and outputs it to the user's browser. If the layout
+     * cannot be found, Steam_Exception_General is thrown.
      *
+     * @throws Steam_Exception_General
      * @return void
      */
     public function display()
     {
-        $page = file_get_contents(Steam::$base_dir . 'apps/' . Steam::$app_name . '/layouts/' . $this->layout);
+        try
+        {
+            $page = file_get_contents(Steam::$base_dir . 'apps/' . Steam::$app_name . '/layouts/' . $this->layout);
+        }
+        catch (Steam_Exeption_FileNotFound $exception)
+        {
+            throw new Steam_Exception_General(sprintf(gettext('The page layout %s could not be found.'), $this->layout));
+        }
         
         foreach ($this->substitutions as &$substitution)
         {

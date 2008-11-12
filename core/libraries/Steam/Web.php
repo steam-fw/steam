@@ -48,11 +48,31 @@ class Steam_Web
         
         try
         {
-            include_once Steam::$base_dir . 'apps/' . $uri->get_app_name() . '/pages/' . $page_name . '.php';
+            include Steam::$base_dir . 'apps/' . $uri->get_app_name() . '/pages/global.php';
         }
         catch (Steam_Exception_FileNotFound $exception)
         {
-            include_once Steam::$base_dir . 'apps/global/error_pages/HTTP_404.php';
+        }
+        catch (Exception $exception)
+        {
+            include Steam::$base_dir . 'apps/global/error_pages/HTTP_500.php';
+            return;
+        }
+        
+        try
+        {
+            include Steam::$base_dir . 'apps/' . $uri->get_app_name() . '/pages/' . $page_name . '.php';
+            return;
+        }
+        catch (Steam_Exception_FileNotFound $exception)
+        {
+            include Steam::$base_dir . 'apps/global/error_pages/HTTP_404.php';
+            return;
+        }
+        catch (Exception $exception)
+        {
+            include Steam::$base_dir . 'apps/global/error_pages/HTTP_500.php';
+            return;
         }
     }
 }
