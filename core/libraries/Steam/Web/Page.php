@@ -74,7 +74,7 @@ class Steam_Web_Page
         {
             $page = file_get_contents(Steam::$base_dir . 'apps/' . Steam::$app_name . '/layouts/' . $this->layout);
         }
-        catch (Steam_Exeption_FileNotFound $exception)
+        catch (Steam_Exception_FileNotFound $exception)
         {
             throw new Steam_Exception_General(sprintf(gettext('The page layout %s could not be found.'), $this->layout));
         }
