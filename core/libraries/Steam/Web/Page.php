@@ -68,7 +68,7 @@ class Steam_Web_Page
      */
     public function display()
     {
-        $page = file_get_contents(Steam::$base_dir . 'sites/' . Steam::$site_name . '/layouts/' . $this->layout);
+        $page = file_get_contents(Steam::$base_dir . 'apps/' . Steam::$site_name . '/layouts/' . $this->layout);
         
         foreach ($this->substitutions as &$substitution)
         {

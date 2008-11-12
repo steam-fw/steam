@@ -1,0 +1,45 @@
+#   Copyright 2008-2009 Shaddy Zeineddine
+# 
+#   This file is part of Steam, a PHP application framework.
+# 
+#   Steam is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation; either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   Steam is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+# INSTRUCTIONS
+#
+# URI rewriting requires the rewrite module (mod_rewrite) as well as
+# the following option. If your configuration does not allow this
+# option to be enabled here, then please add it to your server 
+# configuration and comment out the following line. You must also
+# have "FileInfo" overrideable. If you do not currently allow this,
+# please add the following line to the configuration file in the
+# directory section where Steam resides.
+#
+# <Directory "/path/to/steam/docroot">
+#     AllowOverride FileInfo
+#     Options FollowSymLinks
+#     Order allow,deny
+#     Allow from all
+# </Directory>
+#
+
+Options +FollowSymlinks
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    # Change this to the location that points to your document root
+    # RewriteBase     /{$base_uri}
+    RewriteCond %{REQUEST_URI} !/resources/.*
+    RewriteRule ^(.*) index.php
+</IfModule>

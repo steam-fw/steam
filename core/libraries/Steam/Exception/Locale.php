@@ -1,8 +1,8 @@
 <?php
 /**
- * Steam Database Exception
+ * Steam Locale Exception
  *
- * This exception is thrown when there is a database issue.
+ * This exception is thrown when there is a problem related to localization.
  *
  * Copyright 2008-2009 Shaddy Zeineddine
  *

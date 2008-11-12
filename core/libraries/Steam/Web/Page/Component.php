@@ -104,7 +104,7 @@ class Steam_Web_Page_Component
         
         try
         {
-            $output = include Steam::$base_dir . 'sites/' . Steam::$site_name . '/components/' . $this->name . '.php';
+            $output = include Steam::$base_dir . 'apps/' . Steam::$site_name . '/components/' . $this->name . '.php';
             return $output;
         }
         catch (Exception $exception)

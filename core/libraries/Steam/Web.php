@@ -48,11 +48,11 @@ class Steam_Web
         
         try
         {
-            include_once Steam::$base_dir . 'sites/' . $uri->get_site_name() . '/pages/' . $page_code . '.php';
+            include_once Steam::$base_dir . 'apps/' . $uri->get_site_name() . '/pages/' . $page_code . '.php';
         }
         catch (Steam_Exception_FileNotFound $exception)
         {
-            include_once Steam::$base_dir . 'sites/global/error_pages/HTTP_404.php';
+            include_once Steam::$base_dir . 'apps/global/error_pages/HTTP_404.php';
         }
     }
 }

@@ -1,8 +1,8 @@
 <?php
 /**
- * Steam Not Cached Exception
+ * Steam PHP Exception
  *
- * This exception is thrown when an entry cannot be located in the Memcache.
+ * This exception is thrown for PHP errors.
  *
  * Copyright 2008-2009 Shaddy Zeineddine
  *

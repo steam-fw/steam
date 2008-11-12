@@ -97,9 +97,9 @@ class Steam_Web_URI
         {
             $portal_data = Steam_Cache::get('portal', $this->domain . $this->path);
         }
-        catch (Steam_Exception_NotCached $exception)
+        catch (Steam_Exception_Cache $exception)
         {
-            $portal_data = Steam_Db::read()->select_row('SELECT portals.site_id, sites.site_name, portals.path FROM portals CROSS JOIN sites ON sites.site_id = portals.site_id WHERE \'' . Steam_Db::read()->escape($this->domain) . '\' LIKE domain AND \'' . Steam_Db::read()->escape($this->path) . '\' LIKE CONCAT(\'' . Steam_Db::read()->escape(Steam::$base_uri) . '\', path) ORDER BY portal_sequence ASC');
+            $portal_data = Steam_Db::read()->select_row('SELECT portals.site_id, apps.app_name, portals.path FROM portals CROSS JOIN apps ON apps.app_id = portals.site_id WHERE \'' . Steam_Db::read()->escape($this->domain) . '\' LIKE domain AND \'' . Steam_Db::read()->escape($this->path) . '\' LIKE CONCAT(\'' . Steam_Db::read()->escape(Steam::$base_uri) . '\', path) ORDER BY portal_sequence ASC');
             
             Steam_Cache::set('portal', $this->domain . $this->path, $portal_data);
         }
