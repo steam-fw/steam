@@ -37,9 +37,19 @@
 Options +FollowSymlinks
 
 <IfModule mod_rewrite.c>
+    
     RewriteEngine On
-    # Change this to the location that points to your document root
-    # RewriteBase     /{$base_uri}
-    RewriteCond %{REQUEST_URI} !/resources/.*
+    
+    RewriteBase     /
+    RewriteCond %{REQUEST_URI} !^/resources/.*
+    
+    # If steam is installed in a sub directory of the document root, use the
+    # following lines instead and change {$BASE_URI} to the location that points
+    # to your document root
+    
+    #RewriteBase     /{$BASE_URI}
+    #RewriteCond %{REQUEST_URI} !^/{$BASE_URI}/resources/.*
+    
     RewriteRule ^(.*) index.php
+    
 </IfModule>
