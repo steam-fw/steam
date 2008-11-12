@@ -34,9 +34,9 @@ class Steam_Web_URI
     protected $scheme;
     protected $domain;
     protected $path;
-    protected $site_id;
-    protected $site_name;
-    protected $page_code;
+    protected $app_id;
+    protected $app_name;
+    protected $page_name;
     
     /**
      * Returns a string representation of the URI.
@@ -85,8 +85,8 @@ class Steam_Web_URI
     }
     
     /**
-     * parses the given URI or the current URI and extracts the site_id and
-     * page_code from it.
+     * parses the given URI or the current URI and extracts the app_id and
+     * page_name from it.
      *
      * @return void
      * @param string $uri URI
@@ -99,14 +99,14 @@ class Steam_Web_URI
         }
         catch (Steam_Exception_Cache $exception)
         {
-            $portal_data = Steam_Db::read()->select_row('SELECT portals.site_id, apps.app_name, portals.path FROM portals CROSS JOIN apps ON apps.app_id = portals.site_id WHERE \'' . Steam_Db::read()->escape($this->domain) . '\' LIKE domain AND \'' . Steam_Db::read()->escape($this->path) . '\' LIKE CONCAT(\'' . Steam_Db::read()->escape(Steam::$base_uri) . '\', path) ORDER BY portal_sequence ASC');
+            $portal_data = Steam_Db::read()->select_row('SELECT portals.app_id, apps.app_name, portals.path FROM portals CROSS JOIN apps ON apps.app_id = portals.app_id WHERE \'' . Steam_Db::read()->escape($this->domain) . '\' LIKE domain AND \'' . Steam_Db::read()->escape($this->path) . '\' LIKE CONCAT(\'' . Steam_Db::read()->escape(Steam::$base_uri) . '\', path) ORDER BY portal_sequence ASC');
             
             Steam_Cache::set('portal', $this->domain . $this->path, $portal_data);
         }
         
-        $this->site_id   = $portal_data['site_id'];
-        $this->site_name = $portal_data['site_name'];
-        $this->page_code = preg_replace('/^' . preg_quote(Steam::$base_uri . trim($portal_data['path'], '%'), '/') . '/i', '', rtrim($this->path, '/'));
+        $this->app_id    = $portal_data['app_id'];
+        $this->app_name  = $portal_data['app_name'];
+        $this->page_name = preg_replace('/^' . preg_quote(Steam::$base_uri . trim($portal_data['path'], '%'), '/') . '/i', '', rtrim($this->path, '/'));
     }
     
     public function get_uri()
@@ -129,19 +129,19 @@ class Steam_Web_URI
         return $this->path;
     }
     
-    public function get_site_id()
+    public function get_app_id()
     {
-        return $this->site_id;
+        return $this->app_id;
     }
     
-    public function get_site_name()
+    public function get_app_name()
     {
-        return $this->site_name;
+        return $this->app_name;
     }
     
-    public function get_page_code()
+    public function get_page_name()
     {
-        return $this->page_code;
+        return $this->page_name;
     }
 }
 

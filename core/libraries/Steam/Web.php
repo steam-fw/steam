@@ -39,16 +39,16 @@ class Steam_Web
      */
     public static function load(Steam_Web_URI $uri)
     {
-        $page_code = $uri->get_page_code();
+        $page_name = $uri->get_page_name();
         
-        if (!$page_code)
+        if (!$page_name)
         {
-            $page_code = 'default';
+            $page_name = 'default';
         }
         
         try
         {
-            include_once Steam::$base_dir . 'apps/' . $uri->get_site_name() . '/pages/' . $page_code . '.php';
+            include_once Steam::$base_dir . 'apps/' . $uri->get_app_name() . '/pages/' . $page_name . '.php';
         }
         catch (Steam_Exception_FileNotFound $exception)
         {

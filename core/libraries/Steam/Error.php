@@ -78,7 +78,7 @@ class Steam_Error
         {
             self::$exceptions[] = $exception->getMessage() . ' on line ' . $exception->getLine() . ' of ' . $exception->getFile();
             
-            self::log(LOG_ERR, Steam::$site_name . ': ' . $exception->getType() . ': ' . $exception->getMessage() . '; ' . $exception->getFile() . ' @ line ' . $exception->getLine());
+            self::log(LOG_ERR, Steam::$app_name . ': ' . $exception->getType() . ': ' . $exception->getMessage() . '; ' . $exception->getFile() . ' @ line ' . $exception->getLine());
         }
         catch (Exception $exception)
         {
