@@ -31,7 +31,18 @@
 class Steam_Query
 {
     public $page;
-    public $results;
+    public $items_per_page;
+    public $order_by;
+    protected $filters;
+    protected $selection;
+    
+    public function select()
+    {
+    }
+    
+    public function filter()
+    {
+    }
 }
 
 ?>

@@ -79,6 +79,8 @@ class Steam_Web_Page
             throw new Steam_Exception_General(sprintf(gettext('The page layout %s could not be found.'), $this->layout));
         }
         
+        $page = str_replace('<<<BASE_URI>>>', Steam::$base_uri, $page);
+        
         foreach ($this->substitutions as &$substitution)
         {
             $page = str_replace('<<<' . $substitution[0] . '>>>', $substitution[1], $page);

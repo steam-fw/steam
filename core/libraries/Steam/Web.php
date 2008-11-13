@@ -39,7 +39,9 @@ class Steam_Web
      */
     public static function load(Steam_Web_URI $uri)
     {
-        $page_name = $uri->get_page_name();
+        Steam::$app_id   = $uri->get_app_id();
+        Steam::$app_name = $uri->get_app_name();
+        $page_name       = $uri->get_page_name();
         
         if (!$page_name)
         {
@@ -74,6 +76,48 @@ class Steam_Web
             include Steam::$base_dir . 'apps/global/error_pages/HTTP_500.php';
             return;
         }
+    }
+    
+    /**
+     * Retrieves the value of the specifed variable from the _REQUEST
+     * superglobal array. If it is not set, it returns the second parameter or
+     * a blank string if it is not specified.
+     *
+     * @return mixed
+     * @param string $var variable name
+     * @param mixed $default default value
+     */
+    public static function request($var, $default = '')
+    {
+        return (isset($_REQUEST[$var])) ? $_REQUEST[$var] : $default;
+    }
+    
+    /**
+     * Retrieves the value of the specifed variable from the _POST superglobal
+     * array. If it is not set, it returns the second parameter or a blank
+     * string if it is not specified.
+     *
+     * @return mixed
+     * @param string $var variable name
+     * @param mixed $default default value
+     */
+    public static function post($var, $default = '')
+    {
+        return (isset($_POST[$var])) ? $_POST[$var] : $default;
+    }
+    
+    /**
+     * Retrieves the value of the specifed variable from the _GET superglobal
+     * array. If it is not set, it returns the second parameter or a blank
+     * string if it is not specified.
+     *
+     * @return mixed
+     * @param string $var variable name
+     * @param mixed $default default value
+     */
+    public static function get($var, $default = '')
+    {
+        return (isset($_GET[$var])) ? $_GET[$var] : $default;
     }
 }
 

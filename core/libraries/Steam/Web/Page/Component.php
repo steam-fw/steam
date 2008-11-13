@@ -60,9 +60,10 @@ class Steam_Web_Page_Component
         $args = func_get_args();
         $name = array_shift($args);
         
-        if (array_key_exists($args[0]))
+        if (!array_key_exists($args[0], $this->options))
         {
             $value = array_shift($args);
+            
             if (is_null($value))
             {
                 unset($this->options[$name]);

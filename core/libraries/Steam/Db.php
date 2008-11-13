@@ -116,9 +116,22 @@ class Steam_Db
                 throw Steam_Exception_Database(sprintf(gettext('Unsupported database server: %s.'), self::$server_type));
         }
         
-        self::$servers['write']  = new $class(self::select_server('write'));
-        self::$servers['read']   = new $class(self::select_server('read'));
+        self::$servers['write' ] = new $class(self::select_server('write'));
+        self::$servers['read'  ] = new $class(self::select_server('read'));
         self::$servers['search'] = new $class(self::select_server('search'));
+    }
+    
+    /**
+     * Changes the current database to the one specified.
+     *
+     * @return void
+     * @param string $database database name
+     */
+    public static function select_db($database)
+    {
+        self::$servers['write' ]->select_db($database);
+        self::$servers['read'  ]->select_db($database);
+        self::$servers['search']->select_db($database);
     }
     
     /**

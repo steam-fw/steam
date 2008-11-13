@@ -61,7 +61,7 @@ class Steam_Web_URI
         {
             $this->scheme = 'http://';
             $this->domain = $_SERVER['HTTP_HOST'];
-            $this->path   = $_SERVER['REQUEST_URI'];
+            $this->path   = preg_replace('/\\?.*$/', '', $_SERVER['REQUEST_URI']);
             
             $this->uri = $this->scheme . $this->domain . $this->path;
         }
@@ -69,7 +69,7 @@ class Steam_Web_URI
         {
             $this->uri = $uri;
             
-            preg_match('/([a-z]+:\\/\\/)([a-z][a-z0-9.-]*)(\\/.*)?/i', $this->uri, $matches);
+            preg_match('/([a-z]+:\\/\\/)([a-z][a-z0-9.-]*)(\\/[^?]*)?/i', $this->uri, $matches);
             
             if (!array_key_exists(3, $matches))
             {
@@ -106,7 +106,7 @@ class Steam_Web_URI
         
         $this->app_id    = $portal_data['app_id'];
         $this->app_name  = $portal_data['app_name'];
-        $this->page_name = preg_replace('/^' . preg_quote(Steam::$base_uri . trim($portal_data['path'], '%'), '/') . '/i', '', rtrim($this->path, '/'));
+        $this->page_name = preg_replace('/^' . preg_quote(Steam::$base_uri . trim($portal_data['path'], '%') . '/', '/') . '/i', '', rtrim($this->path, '/'));
     }
     
     public function get_uri()
