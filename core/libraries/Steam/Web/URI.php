@@ -106,7 +106,7 @@ class Steam_Web_URI
         
         $this->app_id    = $portal_data['app_id'];
         $this->app_name  = $portal_data['app_name'];
-        $this->page_name = preg_replace('/^' . preg_quote(Steam::$base_uri . trim($portal_data['path'], '%') . '/', '/') . '/i', '', rtrim($this->path, '/'));
+        $this->page_name = preg_replace('/^' . preg_quote(Steam::$base_uri . trim($portal_data['path'], '%') . '/', '/') . '/i', '', $this->path);
     }
     
     public function get_uri()
