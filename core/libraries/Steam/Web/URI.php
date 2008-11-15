@@ -99,14 +99,20 @@ class Steam_Web_URI
         }
         catch (Steam_Exception_Cache $exception)
         {
-            $portal_data = Steam_Db::read()->select_row('SELECT portals.app_id, apps.app_name, portals.path FROM portals CROSS JOIN apps ON apps.app_id = portals.app_id WHERE \'' . Steam_Db::read()->escape($this->domain) . '\' LIKE domain AND \'' . Steam_Db::read()->escape($this->path) . '\' LIKE CONCAT(\'' . Steam_Db::read()->escape(Steam::$base_uri) . '\', path) ORDER BY portal_sequence ASC');
+            $db = Steam_Db::read();
+            $select = $db->select();
+            $select->from('portals', array('app_id', 'path'))
+                   ->join('apps', 'apps.app_id = portals.app_id', array('app_name'))
+                   ->where($db->quote($this->domain) . ' LIKE domain AND ' . $db->quote($this->path) . ' LIKE CONCAT(' . $db->quote(Steam::$base_uri) . ', path)')
+                   ->order('portal_sequence ASC');
+            $portal_data = $select->query()->fetch();
             
             Steam_Cache::set('portal', $this->domain . $this->path, $portal_data);
         }
         
         $this->app_id    = $portal_data['app_id'];
         $this->app_name  = $portal_data['app_name'];
-        $this->page_name = preg_replace('/^' . preg_quote(Steam::$base_uri . trim($portal_data['path'], '%') . '/', '/') . '/i', '', $this->path);
+        $this->page_name = trim(preg_replace('/^' . preg_quote(Steam::$base_uri . trim($portal_data['path'], '%'), '/') . '/i', '', $this->path), '/');
     }
     
     public function get_uri()

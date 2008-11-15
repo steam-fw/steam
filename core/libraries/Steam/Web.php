@@ -41,7 +41,13 @@ class Steam_Web
     {
         Steam::$app_id   = $uri->get_app_id();
         Steam::$app_name = $uri->get_app_name();
-        $page_name       = $uri->get_page_name();
+        
+        if (Steam::$app_name == 'api')
+        {
+            return self::process_api_request($uri);
+        }
+        
+        $page_name = $uri->get_page_name();
         
         if (!$page_name)
         {
@@ -75,6 +81,48 @@ class Steam_Web
         {
             include Steam::$base_dir . 'apps/global/error_pages/HTTP_500.php';
             return;
+        }
+    }
+    
+    protected static function process_api_request(Steam_Web_URI $uri)
+    {
+        switch ($_SERVER['REQUEST_METHOD'])
+        {
+            case 'POST':
+                $method = 'create';
+                $query = Steam_Data_Query::from_xml(Steam_Web::raw_request());
+                break;
+            case 'GET':
+                $method = 'retrieve';
+                $query = Steam_Data_Query::from_array($_GET);
+                break;
+            case 'PUT':
+                $method = 'update';
+                $query = Steam_Data_Query::from_xml(Steam_Web::raw_request());
+                break;
+            case 'DELETE':
+                $method = 'delete';
+                break;
+        }
+        
+        $result = Steam_Data::request($method, $uri->get_page_name(), $query);
+        
+        header('HTTP/1.1 ' . $result->status . ' ' . Zend_Http_Response::responseCodeAsText($result->status));
+        
+        if ($method == 'create' and $result->status == 201)
+        {
+            header('Location: ' . $result->items[0]['uri']);
+        }
+        elseif ($method == 'retrieve' and $result->status == 200)
+        {
+            $xml = $result->get_xml();
+            header('Content-Type: text/xml; charset=utf-8');
+            header('Content-Length: ' . strlen($xml));
+            echo $xml;
+        }
+        elseif ($result->error)
+        {
+            echo $result->error;
         }
     }
     
@@ -118,6 +166,15 @@ class Steam_Web
     public static function get($var, $default = '')
     {
         return (isset($_GET[$var])) ? $_GET[$var] : $default;
+    }
+    
+    public static function raw_request()
+    {
+        $http = fopen("php://input", "r");
+        $body = stream_get_contents($http);
+        fclose($http);
+        
+        return $body;
     }
 }
 

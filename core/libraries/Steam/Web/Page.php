@@ -33,6 +33,8 @@ class Steam_Web_Page
     protected $layout;
     protected $components = array();
     protected $substitutions = array();
+    protected $css = array();
+    protected $script = array();
     
     /**
      * Creates a new Steam_Web_Page object from the specified layout.
@@ -46,19 +48,39 @@ class Steam_Web_Page
     }
     
     /**
-     * Adds the passed component to the page at the specified destination.
+     * Inserts a component to the page at the specified destination.
      *
      * @return void
+     * @param string $destination destination layout variable
      * @param object $component Steam_Web_Page_Component
      */
-    public function insert($destination, Steam_Web_Page_Component $component)
+    public function insert($destination, Steam_Web_Page_Component &$component)
     {
+        $component->page($this);
+        
         $this->components[] = array($destination, $component);
     }
     
+    /**
+     * Sets the value of a layout variable to the specified value.
+     *
+     * @return void
+     * @param string $destination destination layout variable
+     * @param string $string string
+     */
     public function set($destination, $string)
     {
         $this->substitutions[] = array($destination, $string);
+    }
+    
+    public function css($path, $media = 'all')
+    {
+        $this->css[$path] = $media;
+    }
+    
+    public function script($path, $type = 'text/javascript')
+    {
+        $this->script[$path] = $type;
     }
     
     /**
@@ -79,7 +101,19 @@ class Steam_Web_Page
             throw new Steam_Exception_General(sprintf(gettext('The page layout %s could not be found.'), $this->layout));
         }
         
-        $page = str_replace('<<<BASE_URI>>>', Steam::$base_uri, $page);
+        $uris = array(
+            'GLOBAL_BASE'      => Steam::$base_uri,
+            'GLOBAL_RESOURCES' => Steam::$base_uri . '/resources/global',
+            'BASE'             => Steam::$base_uri . '/' . Steam::$app_name,
+            'RESOURCES'        => Steam::$base_uri . '/resources/' . Steam::$app_name,
+            );
+        
+        foreach ($uris as $name => $value)
+        {
+            $page = str_replace('<<<URI:' . $name . '>>>', $value, $page);
+        }
+        unset($name);
+        unset($value);
         
         foreach ($this->substitutions as &$substitution)
         {
@@ -90,15 +124,35 @@ class Steam_Web_Page
         
         foreach ($this->components as &$component)
         {
-            $page = str_replace('<<<' . $component[0] . '>>>', $component[1], $page);
+            $page = str_replace('<<<' . $component[0] . '>>>', $component[1] . '<<<' . $component[0] . '>>>', $page);
             $component = NULL;
         }
         unset($component);
+        
+        foreach ($this->css as $css => $media)
+        {
+            $page = str_replace('</head>', '<link rel="stylesheet" type="text/css" href="' . $uris['RESOURCES'] . '/css/' . $css . '" media="' . $media . '"/>' . "\n" . '</head>', $page);
+        }
+        $this->css = array();
+        unset($css);
+        unset($media);
+        
+        foreach ($this->script as $script => $type)
+        {
+            $page = str_replace('</head>', '<script type="' . $type . '" href="' . $uris['RESOURCES'] . '/script/' . $script . '"></script>' . "\n" . '</head>', $page);
+        }
+        $this->script = array();
+        unset($script);
+        unset($type);
+        unset($uris);
+        
+        $page = preg_replace('/<<<.*>>>/i', '', $page);
         
         if ($content_type = Steam_Web_MIME::get_type($this->layout))
         {
             header('Content-Type: ' . $content_type);
         }
+        unset($content_type);
         
         header('Content-Length: ' . strlen($page));
         

@@ -31,111 +31,39 @@
 class Steam_Db
 {
     /**
-     * The type of server being used {MySQL, etc}
-     */
-    public    static $server_type;
-    
-    /**
-     * An array of arrays of server parameters
-     */
-    protected static $server_parameters;
-    
-    /**
-     * An array of server connections
+     * An array of Zend_Db objects
      */
     protected static $servers;
     
+    
     /**
-     * Adds a database server of the specified role to the pool. At least one
-     * write master is required. It is recommended to only write to one server.
-     * Servers can by of write, read, or search role. Steam_Exception_Database
-     * is thrown if another role is specified.
+     * Initializes the database by setting the adapter and randomly selecting
+     * servers to use for the current execution. At least one write server must
+     * be defined, while read and search servers are optional and will default
+     * to the defined write server.
      *
      * @throws Steam_Exception_Database
      * @return void
-     * @param string $role server role {write, read, search}
-     * @param array $parameters server parameters {host, user, password, etc}
+     * @param string $adapter Zend_Db adapter
+     * @param array $parameters server parameters
      */
-    public static function add_server($role, $parameters)
+    public static function initialize($adapter, $parameters)
     {
-        switch ($role)
+        if (!isset($parameters['write'][0]))
         {
-            case 'write':
-            case 'read':
-            case 'search':
-                self::$server_parameters[$role][] = $parameters;
-                break;
-            default:
-                throw new Steam_Exception_Database(sprintf(gettext('Invalid server role: %s, must be either "write", "read", or "search".'), $role));
-        }
-    }
-    
-    /**
-     * Selects a server of the specified role at random to be used for the
-     * remainder of the execution and returns its connection parameters. If
-     * there are no servers available for the specified role, it defaults to a
-     * write server. If there are no write servers, Steam_Exception_Database is
-     * thrown.
-     *
-     * @throws Steam_Exception_Database
-     * @return array
-     * @param string $role server role
-     */
-    protected static function select_server($role)
-    {
-        if (!isset(self::$server_parameters[$role]))
-        {
-            if ($role == 'write' or !isset(self::$server_parameters['write']))
-            {
-                throw new Steam_Exception_Database(gettext('A master database server has not been defined.'));
-            }
-            else
-            {
-                return self::select_server('write');
-            }
+                throw new Steam_Exception_Database(gettext('A write database server has not been defined, but is required.'));
         }
         
-        return self::$server_parameters[$role][array_rand(self::$server_parameters[$role])];
-    }
-    
-    /**
-     * Connects to the database servers added by add_server. If the database
-     * server type is not supported, Steam_Exception_Database is thrown.
-     *
-     * @throws Steam_Exception_Database
-     * @return void
-     */
-    public static function connect()
-    {
-        switch (self::$server_type)
+        foreach (array('write', 'read', 'search') as $type)
         {
-            case 'mysql':
-                $class = 'Steam_Db_MySQL';
-                break;
-            default:
-                throw Steam_Exception_Database(sprintf(gettext('Unsupported database server: %s.'), self::$server_type));
+            $use_type = (count($parameters[$type])) ? $type : 'write';
+            
+            self::$servers[$type] = Zend_Db::factory($adapter, $parameters[$use_type][ array_rand($parameters[$use_type]) ]);
         }
-        
-        self::$servers['write' ] = new $class(self::select_server('write'));
-        self::$servers['read'  ] = new $class(self::select_server('read'));
-        self::$servers['search'] = new $class(self::select_server('search'));
     }
     
     /**
-     * Changes the current database to the one specified.
-     *
-     * @return void
-     * @param string $database database name
-     */
-    public static function select_db($database)
-    {
-        self::$servers['write' ]->select_db($database);
-        self::$servers['read'  ]->select_db($database);
-        self::$servers['search']->select_db($database);
-    }
-    
-    /**
-     * Returns a database object for writing.
+     * Returns a Zend_Db object for writing.
      *
      * @return object
      */
@@ -145,7 +73,7 @@ class Steam_Db
     }
     
     /**
-     * Returns a database object for reading.
+     * Returns a Zend_Db object for reading.
      *
      * @return object
      */
@@ -155,7 +83,7 @@ class Steam_Db
     }
     
     /**
-     * Returns a database object for searching.
+     * Returns a Zend_Db object for searching.
      *
      * @return object
      */

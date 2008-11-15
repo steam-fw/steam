@@ -32,17 +32,30 @@ $locale           = 'en_US.utf8';
 $timezone         = 'America/Los_Angeles';
 $base_uri         = '/steam';
 
-$memcache_host    = 'localhost';
-$memcache_port    = '11211';
-
-$db_server_type   = 'mysql';
-$db_write_master  = array(
-    'host'        => 'localhost',
-    'user'        => 'root',
-    'password'    => '',
-    'database'    => 'steam',
+$cache_backend    = 'Memcached';
+$cache_params     = array(
+    'servers' => array(
+        array(
+            'host' => 'localhost',
+            'port' => '11211',
+            ),
+        ),
     );
-$db_read_slaves   = array();
-$db_search_slaves = array();
+
+$db_adapter       = 'Mysqli';
+$db_params        = array(
+    'write'  => array(
+        array(
+            'host'     => 'localhost',
+            'username' => 'root',
+            'password' => '',
+            'dbname'   => 'steam'
+            ),
+        ),
+    'read'   => array(
+        ),
+    'search' => array(
+        ),
+    );
 
 ?>

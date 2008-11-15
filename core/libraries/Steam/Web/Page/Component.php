@@ -33,6 +33,7 @@ class Steam_Web_Page_Component
     protected $name;
     protected $options = array();
     protected $data;
+    protected $page;
     
     /**
      * Creates a new Steam_Web_Page object from the specified layout.
@@ -91,6 +92,11 @@ class Steam_Web_Page_Component
         $this->data = $data;
     }
     
+    public function page(Steam_Web_Page &$page)
+    {
+        $this->page = $page;
+    }
+    
     /**
      * This method creates a string representation of the component by
      * including the component file which constructs the output, whether it be
@@ -102,6 +108,7 @@ class Steam_Web_Page_Component
     {
         $options = $this->options;
         $data    = $this->data;
+        $page    = $this->page;
         
         try
         {
@@ -110,7 +117,7 @@ class Steam_Web_Page_Component
         }
         catch (Exception $exception)
         {
-            return '';
+            return $exception->getMessage();
         }
     }
 }

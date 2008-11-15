@@ -80,6 +80,7 @@ class Steam
         
         // don't display errors because Steam is handling error output now
         ini_set('display_errors', 0);
+        ini_set('html_errors',    0);
         
         // load the configuration file
         require_once self::$base_dir . 'config.php';
@@ -87,33 +88,22 @@ class Steam
         // store certain configuration variables
         self::$base_uri = $base_uri;
         
+        // initialize caching with the configured backend and parameters
+        Steam_Cache::initialize($cache_backend, $cache_params);
+        
+        // initialize the database with the configured adapter and parameters
+        Steam_Db::initialize($db_adapter, $db_params);
+        
         // set the default locale and timezone
-        Steam_Locale::set(LC_ALL, $locale);
-        Steam_Locale::timezone($timezone);
+        date_default_timezone_set($timezone);
+        Zend_Locale::setDefault($locale);
         
-        // connect to the memcache
-        Steam_Cache::connect($memcache_host, $memcache_port);
+        Zend_Locale::setCache(Steam_Cache::$cache);
+        Zend_Translate::setCache(Steam_Cache::$cache);
         
-        // set the database server type {MySQL, etc}
-        Steam_Db::$server_type = $db_server_type;
+        Zend_Registry::set('Zend_Locale', new Zend_Locale(Zend_Locale::BROWSER));
         
-        // add the master db server
-        Steam_Db::add_server('write', $db_write_master);
-        
-        // add any slave read servers
-        foreach ($db_read_slaves as $db_read_slave)
-        {
-            Steam_Db::add_server('read', $db_read_slave);
-        }
-        
-        // add any slave search servers
-        foreach ($db_search_slaves as $db_search_slave)
-        {
-            Steam_Db::add_server('search', $db_read_slave);
-        }
-        
-        // select the servers and connect
-        Steam_Db::connect();
+        Steam_Lang::source('steam');
     }
 }
 
