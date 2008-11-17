@@ -56,6 +56,11 @@ class Steam
     public static $app_name;
     
     /**
+     * The current application URI which includes the base uri
+     */
+    public static $app_uri;
+    
+    /**
      * Initializes the Steam class by loading the configuration variables,
      * setting the default timezone, setting the custom error and exception
      * handlers, and connecting the the database.
@@ -81,6 +86,7 @@ class Steam
         // don't display errors because Steam is handling error output now
         ini_set('display_errors', 0);
         ini_set('html_errors',    0);
+        error_reporting(E_ALL);
         
         // load the configuration file
         require_once self::$base_dir . 'config.php';

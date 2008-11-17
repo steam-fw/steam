@@ -139,7 +139,7 @@ class Steam_Web_Page
         
         foreach ($this->script as $script => $type)
         {
-            $page = str_replace('</head>', '<script type="' . $type . '" href="' . $uris['RESOURCES'] . '/script/' . $script . '"></script>' . "\n" . '</head>', $page);
+            $page = str_replace('</head>', '<script type="' . $type . '" src="' . $uris['RESOURCES'] . '/script/' . $script . '"></script>' . "\n" . '</head>', $page);
         }
         $this->script = array();
         unset($script);

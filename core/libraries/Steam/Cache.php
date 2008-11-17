@@ -2,7 +2,7 @@
 /**
  * Steam Cache Interface Class
  *
- * This class provides a simple interface to PHP's Memcache class.
+ * This class provides a front end interface to Zend_Cache.
  *
  * Copyright 2008-2009 Shaddy Zeineddine
  *
@@ -33,16 +33,15 @@ class Steam_Cache
     /**
      * The Zend_Cache object.
      */
-    public static $cache;
+    protected static $cache;
     
     /**
-     * Connects to the specified memcache host. Steam_Exception_Cache is thrown
-     * if connecting fails.
+     * Creates a new instance of Zend_Cache with the specified backend and
+     * parameters.
      *
-     * @throws Steam_Exception_Cache
      * @return void
-     * @param string $host memcache host
-     * @param int $port memcache port
+     * @param string $backend valid Zend_Cache backend
+     * @param array $parameters Zend_Cache backend options
      */
     public static function initialize($backend, array $parameters)
     {
@@ -73,7 +72,7 @@ class Steam_Cache
      * the data does not exist in the cache, Steam_Exception_Cache is thrown.
      *
      * @throws Steam_Exception_Cache
-     * @return mixed
+     * @return mixed cached value
      * @param string $context data context
      * @param string $identifier context specific identifier
      */
@@ -117,6 +116,16 @@ class Steam_Cache
         {
             throw new Steam_Exception_Cache(gettext('There was a problem flushing all stored data.'));
         }
+    }
+    
+    /**
+     * Returns the underlying Zend_Cache object.
+     *
+     * @return object Zend_Cache
+     */
+    public static function get_cache()
+    {
+        return self::$cache;
     }
 }
 

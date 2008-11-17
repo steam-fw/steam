@@ -2,7 +2,7 @@
 /**
  * Steam Exception Class
  *
- * This class manages the throwing of Steam exceptions.
+ * All Steam exceptions extend this base class.
  *
  * Copyright 2008-2009 Shaddy Zeineddine
  *

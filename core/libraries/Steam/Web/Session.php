@@ -29,33 +29,26 @@
  * @link http://code.google.com/p/steam-fw
  */
 
-class Steam_Web_Session
+class Steam_Web_Session implements Zend_Session_SaveHandler_Interface
 {
-    protected static $lifetime;
+    protected $lifetime;
     
-    private function __construct()
+    public function __construct()
     {
+        $this->lifetime = ini_get('session.gc_maxlifetime');
     }
     
-    public static function start()
-    {
-        self::$lifetime = ini_get('session.gc_maxlifetime');
-        session_set_save_handler('Steam_Web_Session::open', 'Steam_Web_Session::close', 'Steam_Web_Session::read', 'Steam_Web_Session::write', 'Steam_Web_Session::destroy', 'Steam_Web_Session::clean');
-        session_start();
-        #register_shutdown_function('session_write_close');
-    }
-    
-    public static function open($save_path, $session_name)
+    public function open($save_path, $session_name)
     {
         return true;
     }
     
-    public static function close()
+    public function close()
     {
         return true;
     }
     
-    public static function read($session_id)
+    public function read($session_id)
     {
         try
         {
@@ -67,7 +60,7 @@ class Steam_Web_Session
         }
     }
     
-    public static function write($session_id, $session_data)
+    public function write($session_id, $session_data)
     {
         if (Steam_Cache::set('session', $session_id, $session_data, $this->lifetime))
         {
@@ -79,7 +72,7 @@ class Steam_Web_Session
         }
     }
     
-    public static function destroy($session_id)
+    public function destroy($session_id)
     {
         if (Steam_Cache::delete('session', $session_id))
         {
@@ -91,7 +84,7 @@ class Steam_Web_Session
         }
     }
     
-    public static function clean($max_lifetime)
+    public function gc($max_lifetime)
     {
         return true;
     }

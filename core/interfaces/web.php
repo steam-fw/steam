@@ -31,8 +31,8 @@
 // identify the current interface
 Steam::$interface = 'web';
 
-// initialize the user session using a memcache based custom session handler
-Steam_Web_Session::start();
+// configure Zend_Session to use a custom cache based save handler
+Zend_Session::setSaveHandler(new Steam_Web_Session);
 
 // load the requested page
 Steam_Web::load(new Steam_Web_URI());

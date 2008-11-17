@@ -32,16 +32,19 @@ class Steam_Web
 {
     /**
      * Loads a page based on the given page code. Page code defaults to
-     * "default".
+     * "default". If the URI targets the API, the request is processed.
      *
      * @return void
      * @param object $uri Steam_Web_URI object
      */
     public static function load(Steam_Web_URI $uri)
     {
+        // set the app environment variables
         Steam::$app_id   = $uri->get_app_id();
         Steam::$app_name = $uri->get_app_name();
+        Steam::$app_uri  = Steam::$base_uri . '/' . Steam::$app_name;
         
+        // if the app is the api, process the request and return response
         if (Steam::$app_name == 'api')
         {
             return self::process_api_request($uri);
@@ -49,6 +52,7 @@ class Steam_Web
         
         $page_name = $uri->get_page_name();
         
+        // if there was no page name specified, load the default page
         if (!$page_name)
         {
             $page_name = 'default';
@@ -56,6 +60,7 @@ class Steam_Web
         
         try
         {
+            // try to load the global page if it exists
             include Steam::$base_dir . 'apps/' . $uri->get_app_name() . '/pages/global.php';
         }
         catch (Steam_Exception_FileNotFound $exception)
@@ -63,41 +68,56 @@ class Steam_Web
         }
         catch (Exception $exception)
         {
+            // if the global page raised an exception, display an error page
             include Steam::$base_dir . 'apps/global/error_pages/HTTP_500.php';
             return;
         }
         
         try
         {
+            // try to load the requested page
             include Steam::$base_dir . 'apps/' . $uri->get_app_name() . '/pages/' . $page_name . '.php';
             return;
         }
         catch (Steam_Exception_FileNotFound $exception)
         {
+            // if it's not found, display the 404 error page
             include Steam::$base_dir . 'apps/global/error_pages/HTTP_404.php';
             return;
         }
         catch (Exception $exception)
         {
+            // if it raised an exception, show the 500 error page
             include Steam::$base_dir . 'apps/global/error_pages/HTTP_500.php';
             return;
         }
     }
     
+    /**
+     * Processes API requests using the data manipulation scripts and outputs
+     * the response directly to the browser.
+     *
+     * @return void
+     * @param object Steam_Web_URI
+     */
     protected static function process_api_request(Steam_Web_URI $uri)
     {
+        // perform any special tasks for the type of method
         switch ($_SERVER['REQUEST_METHOD'])
         {
             case 'POST':
                 $method = 'create';
+                // translate the xml in the request to a query object
                 $query = Steam_Data_Query::from_xml(Steam_Web::raw_request());
                 break;
             case 'GET':
                 $method = 'retrieve';
+                // translate the get variables in the request to a query object
                 $query = Steam_Data_Query::from_array($_GET);
                 break;
             case 'PUT':
                 $method = 'update';
+                // translate the xml in the request to a query object
                 $query = Steam_Data_Query::from_xml(Steam_Web::raw_request());
                 break;
             case 'DELETE':
@@ -105,16 +125,21 @@ class Steam_Web
                 break;
         }
         
+        // perform the actual request
         $result = Steam_Data::request($method, $uri->get_page_name(), $query);
         
+        // output the status of the response
         header('HTTP/1.1 ' . $result->status . ' ' . Zend_Http_Response::responseCodeAsText($result->status));
         
+        // output any special headers or data for specific methods
         if ($method == 'create' and $result->status == 201)
         {
+            // output the location of the newly created resource
             header('Location: ' . $result->items[0]['uri']);
         }
         elseif ($method == 'retrieve' and $result->status == 200)
         {
+            // output an xml representation of the data
             $xml = $result->get_xml();
             header('Content-Type: text/xml; charset=utf-8');
             header('Content-Length: ' . strlen($xml));
@@ -122,6 +147,7 @@ class Steam_Web
         }
         elseif ($result->error)
         {
+            // if there is an error message, output that in the body
             echo $result->error;
         }
     }
@@ -168,6 +194,12 @@ class Steam_Web
         return (isset($_GET[$var])) ? $_GET[$var] : $default;
     }
     
+    /**
+     * Retrieves any and all data that was passed in the body of the current
+     * request as a string.
+     *
+     * @return string request data
+     */
     public static function raw_request()
     {
         $http = fopen("php://input", "r");

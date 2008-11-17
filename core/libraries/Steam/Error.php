@@ -48,6 +48,14 @@ class Steam_Error
      */
     public static function error_handler($level, $message, $file, $line, $context)
     {
+        // someone used @ so let's stay quiet
+        if( ($level & error_reporting()) != $level)
+        {
+            return;
+        }
+        
+        // maps certain errors to different exceptions
+        // currently only works if the error strings are in english
         $map = array(
             'failed to open stream: No such file or directory' => 'FileNotFound',
             );
@@ -62,6 +70,7 @@ class Steam_Error
             }
         }
         
+        // if there wasn't a matching exception, throw the general PHP exception
         throw new Steam_Exception_PHP($message, $level, $file, $line);
     }
     
@@ -99,19 +108,6 @@ class Steam_Error
         openlog('Steam/' . Steam::$interface, LOG_ODELAY, Steam::$syslog_facility);
         syslog($priority, $message);
         closelog();
-    }
-    
-    /**
-     * Outputs an array of all exceptions that were handled by the custom
-     * exception handler and clears the array afterwards.
-     *
-     * @return array
-     */
-    public static function report()
-    {
-        $exceptions = self::$exceptions;
-        self::$exceptions = array();
-        return $exceptions;
     }
     
     /**
