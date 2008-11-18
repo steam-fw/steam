@@ -73,7 +73,7 @@ class Steam_Web_URI
             
             if (!array_key_exists(3, $matches))
             {
-                throw Steam::_('Exception', 'InvalidType', gettext('The supplied string is not a valid URI.'));
+                throw new Steam_Exception_Type(Steam_Locale::_('The supplied string is not a valid URI.'));
             }
             
             $this->scheme = $matches[1];

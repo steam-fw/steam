@@ -54,7 +54,7 @@ class Steam_Logger
      */
     public static function add_writer(Zend_Log_Writer_Abstract $writer)
     {
-        return self::$log->addWriter($writer);
+        return self::$logger->addWriter($writer);
     }
     
     /**
@@ -64,7 +64,7 @@ class Steam_Logger
      */
     public static function get_logger()
     {
-        return self::$log;
+        return self::$logger;
     }
     
     /**
@@ -76,7 +76,7 @@ class Steam_Logger
      */
     public static function log($message, $priority)
     {
-        return self::$log->log($message, $priority);
+        return self::$logger->log($message, $priority);
     }
 }
 

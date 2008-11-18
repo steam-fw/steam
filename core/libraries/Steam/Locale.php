@@ -33,7 +33,7 @@ class Steam_Locale
     /**
      * Instance of Zend_Translate used for translating Steam strings.
      */
-    protected $translate;
+    protected static $translator;
     
     /**
      * Initializes localization by setting the default locale and timezone, and
@@ -57,7 +57,7 @@ class Steam_Locale
         Zend_Registry::set('Zend_Locale', new Zend_Locale($locale));
         
         // create an instance of Zend_Translate for translating core Steam text
-        self::$translate = = new Zend_Translate('Zend_Translate_Adapter_Gettext', Steam::$base_dir . 'apps/steam/translations', NULL, array('scan' => Zend_Translate::LOCALE_DIRECTORY));
+        self::$translator = new Zend_Translate('gettext', Steam::$base_dir . 'apps/steam/translations', NULL, array('scan' => Zend_Translate::LOCALE_DIRECTORY));
     }
     
     /**
@@ -87,7 +87,7 @@ class Steam_Locale
             $string = call_user_func_array('sprintf', $args);
         }
         
-        return self::get()->_($string);
+        return self::$translator->translate($string);
     }
 }
 

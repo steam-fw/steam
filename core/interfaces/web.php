@@ -34,12 +34,12 @@ Steam::$interface = 'web';
 switch (Steam::$environment)
 {
     case 'development':
-        $syslog = new Zend_Log_Writer_Firebug;
-        Steam_Logger::add_writer();
+        $firebug = new Zend_Log_Writer_Firebug;
+        Steam_Logger::add_writer($firebug);
         break;
     default:
         $syslog = new Zend_Log_Writer_Syslog;
-        Steam_Logger::add_writer();
+        Steam_Logger::add_writer($syslog);
 }
 
 // configure Zend_Session to use a custom cache based save handler

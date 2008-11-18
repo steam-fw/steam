@@ -1,8 +1,8 @@
 <?php
 /**
- * Steam Command Line Interface
+ * Steam Type Exception
  *
- * This script provides a command line interface to Steam.
+ * This exception is thrown when a variable is of an invalid type.
  *
  * Copyright 2008-2009 Shaddy Zeineddine
  *
@@ -28,7 +28,14 @@
  * @link http://code.google.com/p/steam-fw
  */
 
-// identify the current interface
-Steam::$interface = 'shell';
+require_once 'Steam/Exception.php';
+
+class Steam_Exception_Type extends Steam_Exception
+{
+    protected function setMessage(&$message)
+    {
+        $message = gettext('A variable type expectation has failed.');
+    }
+}
 
 ?>
