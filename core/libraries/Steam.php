@@ -2,7 +2,7 @@
 /**
  * Steam Class
  *
- * This class initializes the Steam environment and stores important variables.
+ * This class initializes the Steam environment.
  *
  * Copyright 2008-2009 Shaddy Zeineddine
  *
@@ -30,6 +30,11 @@
 
 class Steam
 {
+    /**
+     * The current environment which controls debugging output
+     */
+    public static $environment;
+    
     /**
      * The Steam base URI, the URI of the directory that contains index.php
      */
@@ -61,9 +66,8 @@ class Steam
     public static $app_uri;
     
     /**
-     * Initializes the Steam class by loading the configuration variables,
-     * setting the default timezone, setting the custom error and exception
-     * handlers, and connecting the the database.
+     * Initializes the Steam environment by reading the configuration files and
+     * initializing the subcomponents.
      *
      * @return void
      */
@@ -78,21 +82,18 @@ class Steam
         // activate the autoloader
         Zend_Loader::registerAutoload();
         
-        // set the custom error and exception handlers
-        set_exception_handler('Steam_Error::exception_handler');
-        set_error_handler('Steam_Error::error_handler');
-        register_shutdown_function('Steam_Error::shutdown');
-        
-        // don't display errors because Steam is handling error output now
-        ini_set('display_errors', 0);
-        ini_set('html_errors',    0);
-        error_reporting(E_ALL);
-        
         // load the configuration file
         require_once self::$base_dir . 'config.php';
         
         // store certain configuration variables
-        self::$base_uri = $base_uri;
+        self::$base_uri    = $base_uri;
+        self::$environment = $environment;
+        
+        // initialize the logger
+        Steam_Logger::initialize();
+        
+        // initialize error and exception handling
+        Steam_Error::initialize();
         
         // initialize caching with the configured backend and parameters
         Steam_Cache::initialize($cache_backend, $cache_params);
@@ -100,16 +101,8 @@ class Steam
         // initialize the database with the configured adapter and parameters
         Steam_Db::initialize($db_adapter, $db_params);
         
-        // set the default locale and timezone
-        date_default_timezone_set($timezone);
-        Zend_Locale::setDefault($locale);
-        
-        Zend_Locale::setCache(Steam_Cache::$cache);
-        Zend_Translate::setCache(Steam_Cache::$cache);
-        
-        Zend_Registry::set('Zend_Locale', new Zend_Locale(Zend_Locale::BROWSER));
-        
-        Steam_Lang::source('steam');
+        // initialize localization support
+        Steam_Locale::initialize($locale, $timezone);
     }
 }
 

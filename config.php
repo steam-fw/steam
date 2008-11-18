@@ -28,6 +28,7 @@
  * @link http://code.google.com/p/steam-fw
  */
 
+$environment      = 'development';
 $locale           = 'en_US.utf8';
 $timezone         = 'America/Los_Angeles';
 $base_uri         = '/steam';

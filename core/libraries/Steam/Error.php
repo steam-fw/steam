@@ -2,7 +2,7 @@
 /**
  * Steam Error Class
  *
- * This class handles errors and error logging.
+ * This class handles errors and exceptions.
  *
  * Copyright 2008-2009 Shaddy Zeineddine
  *
@@ -34,6 +34,24 @@ class Steam_Error
      * Exceptions which were caught by the default exception handler.
      */
     protected static $exceptions = array();
+    
+    /**
+     * Initializes error and exception handlers.
+     *
+     * @return void
+     */
+    public static function initialize()
+    {
+        // set the custom error and exception handlers
+        set_exception_handler('Steam_Error::exception_handler');
+        set_error_handler('Steam_Error::error_handler');
+        register_shutdown_function('Steam_Error::shutdown');
+        
+        // don't display errors because Steam is handling error output now
+        ini_set('display_errors', 0);
+        ini_set('html_errors',    0);
+        error_reporting(E_ALL);
+    }
     
     /**
      * Custom error handler which converts errors into exceptions.
@@ -85,29 +103,16 @@ class Steam_Error
     {
         try
         {
-            self::$exceptions[] = $exception->getMessage() . ' on line ' . $exception->getLine() . ' of ' . $exception->getFile();
+            $message = $exception->getMessage() . ' on line ' . $exception->getLine() . ' of ' . $exception->getFile();
             
-            self::log(LOG_ERR, Steam::$app_name . ': ' . $exception->getType() . ': ' . $exception->getMessage() . '; ' . $exception->getFile() . ' @ line ' . $exception->getLine());
+            self::$exceptions[] = $message;
+            
+            Steam_Logger::write(Steam::$app_name . ': ' . $message, Zend_Log::ERR);
         }
         catch (Exception $exception)
         {
-            echo $exception->getType() . ' Exception : ' . $exception->getMessage() . ' in ' . $exception->getFile() . ' on line ' . $exception->getLine();
+            echo 'There was a problem handling the exception : ' . $exception->getMessage() . ' in ' . $exception->getFile() . ' on line ' . $exception->getLine();
         }
-    }
-    
-    /**
-     * Writes messages to syslog with the specified priority.
-     *
-     * @return void
-     * @param int $priority syslog priority
-     * @param string $message log message
-     */
-    public static function log($priority, $message)
-    {
-        define_syslog_variables();
-        openlog('Steam/' . Steam::$interface, LOG_ODELAY, Steam::$syslog_facility);
-        syslog($priority, $message);
-        closelog();
     }
     
     /**
