@@ -2,20 +2,53 @@
 
 class Steam_Data_Query
 {
-    public static function from_xml($xml)
+    protected $sxe;
+    
+    public function __construct($xml)
     {
-        $class = __CLASS__;
-        $query = new $class;
+        if (is_array($xml))
+        {
+            $xml = self::get_to_xml($xml);
+        }
         
-        return $query;
+        $this->sxe = new SimpleXMLElement($xml);
     }
     
-    public static function from_array($array)
+    public function __set($name, $value)
     {
-        $class = __CLASS__;
-        $query = new $class;
+        $this->sxe->$name = $value;
+    }
+    
+    public function __get($name)
+    {
+        return $this->sxe->$name;
+    }
+    
+    public function __isset($name)
+    {
+        return isset($this->sxe->$name);
+    }
+    
+    public function __unset($name)
+    {
+        unset($this->sxe->$name);
+    }
+    
+    public function __call($method, $arguments)
+    {
+        return call_user_func_array(array($this->sxe, $method), $arguments);
+    }
+    
+    protected function get_to_xml($get)
+    {
+        $xml = '<?xml version="1.0"?><data>';
         
-        return $query;
+        foreach ($get as $name => $value)
+        {
+            $xml .= '<' . $name . '>' . htmlspecialchars($value) . '</' . $name . '>';
+        }
+        
+        return $xml . '</data>';
     }
 }
 

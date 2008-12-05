@@ -89,20 +89,20 @@ class Steam
         self::$base_uri    = $base_uri;
         self::$environment = $environment;
         
+        // initialize caching with the configured backend and parameters
+        Steam_Cache::initialize($cache_backend, $cache_params);
+        
+        // initialize localization support
+        Steam_Locale::initialize($locale, $timezone);
+        
         // initialize the logger
         Steam_Logger::initialize();
         
         // initialize error and exception handling
         Steam_Error::initialize();
         
-        // initialize caching with the configured backend and parameters
-        Steam_Cache::initialize($cache_backend, $cache_params);
-        
         // initialize the database with the configured adapter and parameters
         Steam_Db::initialize($db_adapter, $db_params);
-        
-        // initialize localization support
-        Steam_Locale::initialize($locale, $timezone);
     }
 }
 

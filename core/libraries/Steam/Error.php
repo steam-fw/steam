@@ -78,18 +78,25 @@ class Steam_Error
             'failed to open stream: No such file or directory' => 'FileNotFound',
             );
         
-        foreach ($map as $error => $exception)
+        foreach ($map as $error_message => $exception_type)
         {
-            if (is_numeric(strpos($message, $error)))
+            if (is_numeric(strpos($message, $error_message)))
             {
-                $exception = 'Steam_Exception_' . $exception;
+                $exception_type = 'Steam_Exception_' . $exception_type;
                 
-                throw new $exception($message, $level, $file, $line);
+                $exception = new $exception_type($message, $level, $file, $line);
             }
         }
         
-        // if there wasn't a matching exception, throw the general PHP exception
-        throw new Steam_Exception_PHP($message, $level, $file, $line);
+        if (!isset($exception))
+        {
+            // if there wasn't a matching exception, throw the general PHP exception
+            $exception = new Steam_Exception_PHP($message, $level, $file, $line);
+        }
+        
+        self::log_exception($exception);
+        
+        throw $exception;
     }
     
     /**
@@ -103,16 +110,21 @@ class Steam_Error
     {
         try
         {
-            $message = $exception->getMessage() . ' on line ' . $exception->getLine() . ' of ' . $exception->getFile();
-            
-            self::$exceptions[] = $message;
-            
-            Steam_Logger::write(Steam::$app_name . ': ' . $message, Zend_Log::ERR);
+            self::$exceptions[] = self::log_exception($exception);
         }
         catch (Exception $exception)
         {
             echo 'There was a problem handling the exception : ' . $exception->getMessage() . ' in ' . $exception->getFile() . ' on line ' . $exception->getLine();
         }
+    }
+    
+    protected static function log_exception($exception)
+    {
+            $message = $exception->getMessage() . ' on line ' . $exception->getLine() . ' of ' . $exception->getFile();
+            
+            Steam_Logger::log(Steam::$app_name . ': ' . $message, Zend_Log::ERR);
+            
+            return $message;
     }
     
     /**

@@ -30,6 +30,10 @@
 
 class Steam_Web
 {
+    protected static $headers_sent = false;
+    protected static $headers = array();
+    protected static $body = '';
+    
     /**
      * Loads a page based on the given page code. Page code defaults to
      * "default". If the URI targets the API, the request is processed.
@@ -108,17 +112,17 @@ class Steam_Web
             case 'POST':
                 $method = 'create';
                 // translate the xml in the request to a query object
-                $query = Steam_Data_Query::from_xml(Steam_Web::raw_request());
+                $query = new Steam_Data_Query(Steam_Web::raw_request());
                 break;
             case 'GET':
                 $method = 'retrieve';
                 // translate the get variables in the request to a query object
-                $query = Steam_Data_Query::from_array($_GET);
+                $query = new Steam_Data_Query($_GET);
                 break;
             case 'PUT':
                 $method = 'update';
                 // translate the xml in the request to a query object
-                $query = Steam_Data_Query::from_xml(Steam_Web::raw_request());
+                $query = new Steam_Data_Query(Steam_Web::raw_request());
                 break;
             case 'DELETE':
                 $method = 'delete';
@@ -126,30 +130,80 @@ class Steam_Web
         }
         
         // perform the actual request
-        $result = Steam_Data::request($method, $uri->get_page_name(), $query);
+        $response = Steam_Data::request($method, $uri->get_page_name(), $query);
         
         // output the status of the response
-        header('HTTP/1.1 ' . $result->status . ' ' . Zend_Http_Response::responseCodeAsText($result->status));
+        self::header('HTTP/1.1 ' . $response->status . ' ' . Zend_Http_Response::responseCodeAsText(intval($response->status)));
         
         // output any special headers or data for specific methods
-        if ($method == 'create' and $result->status == 201)
+        if ($method == 'create' and $response->status == 201)
         {
             // output the location of the newly created resource
-            header('Location: ' . $result->items[0]['uri']);
+            self::header('Location', $response->location);
         }
-        elseif ($method == 'retrieve' and $result->status == 200)
+        elseif ($method == 'retrieve' and $response->status == 200)
         {
             // output an xml representation of the data
-            $xml = $result->get_xml();
-            header('Content-Type: text/xml; charset=utf-8');
-            header('Content-Length: ' . strlen($xml));
-            echo $xml;
+            self::header('Content-Type', 'text/xml; charset=utf-8');
+            self::body($response->asXML());
         }
-        elseif ($result->error)
+        elseif ($response->error)
         {
             // if there is an error message, output that in the body
-            echo $result->error;
+            self::body($response->error);
         }
+        
+        self::send_response();
+    }
+    
+    public static function header($header, $value = NULL)
+    {
+        if (is_null($value))
+        {
+            self::$headers[] = $header;
+        }
+        else
+        {
+            self::$headers[strtolower($header)] = $header . ': ' . $value;
+        }
+    }
+    
+    public static function send_headers()
+    {
+        foreach (self::$headers as $header)
+        {
+            header($header);
+        }
+        
+        self::$headers_sent = true;
+    }
+    
+    public static function body($body)
+    {
+        self::$body = $body;
+        self::header('Content-Length', strlen($body));
+    }
+    
+    public static function send_body($body)
+    {
+        if (!self::$headers_sent)
+        {
+            self::send_headers();
+        }
+        
+        echo $body;
+    }
+    
+    public static function send_response()
+    {
+        if (!self::$headers_sent)
+        {
+            self::send_headers();
+        }
+        
+        echo self::$body;
+        
+        self::$body = '';
     }
     
     /**
@@ -202,11 +256,7 @@ class Steam_Web
      */
     public static function raw_request()
     {
-        $http = fopen("php://input", "r");
-        $body = stream_get_contents($http);
-        fclose($http);
-        
-        return $body;
+        return file_get_contents('php://input');
     }
 }
 

@@ -31,7 +31,6 @@
 class Steam_Web_Page
 {
     protected $layout;
-    protected $components = array();
     protected $substitutions = array();
     protected $css = array();
     protected $script = array();
@@ -58,7 +57,7 @@ class Steam_Web_Page
     {
         $component->page($this);
         
-        $this->components[] = array($destination, $component);
+        $this->substitutions[] = array('insert', $destination, $component);
     }
     
     /**
@@ -70,7 +69,7 @@ class Steam_Web_Page
      */
     public function set($destination, $string)
     {
-        $this->substitutions[] = array($destination, $string);
+        $this->substitutions[] = array('set', $destination, $string);
     }
     
     public function css($path, $media = 'all')
@@ -117,17 +116,18 @@ class Steam_Web_Page
         
         foreach ($this->substitutions as &$substitution)
         {
-            $page = str_replace('<<<' . $substitution[0] . '>>>', $substitution[1], $page);
+            switch ($substitution[0])
+            {
+                case 'insert':
+                    $page = str_replace('<<<' . $substitution[1] . '>>>', $substitution[2] . '<<<' . $substitution[1] . '>>>', $page);
+                    break;
+                case 'set':
+                    $page = str_replace('<<<' . $substitution[1] . '>>>', $substitution[2], $page);
+                    break;
+            }
             $substitution = NULL;
         }
         unset($substitution);
-        
-        foreach ($this->components as &$component)
-        {
-            $page = str_replace('<<<' . $component[0] . '>>>', $component[1] . '<<<' . $component[0] . '>>>', $page);
-            $component = NULL;
-        }
-        unset($component);
         
         foreach ($this->css as $css => $media)
         {
@@ -150,13 +150,13 @@ class Steam_Web_Page
         
         if ($content_type = Steam_Web_MIME::get_type($this->layout))
         {
-            header('Content-Type: ' . $content_type);
+            Steam_Web::header('Content-Type', $content_type);
         }
         unset($content_type);
         
-        header('Content-Length: ' . strlen($page));
+        Steam_Web::body($page);
         
-        echo $page;
+        unset($page);
     }
 }
 

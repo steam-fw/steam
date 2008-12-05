@@ -34,6 +34,11 @@ Steam::$interface = 'web';
 switch (Steam::$environment)
 {
     case 'development':
+        $request  = new Zend_Controller_Request_Http();
+        $response = new Zend_Controller_Response_Http();
+        $channel = Zend_Wildfire_Channel_HttpHeaders::getInstance();
+        $channel->setRequest($request);
+        $channel->setResponse($response);
         $firebug = new Zend_Log_Writer_Firebug;
         Steam_Logger::add_writer($firebug);
         break;
@@ -47,6 +52,14 @@ Zend_Session::setSaveHandler(new Steam_Web_Session);
 
 // load the requested page
 Steam_Web::load(new Steam_Web_URI());
+
+if (Steam::$environment == 'development')
+{
+    $channel->flush();
+    $response->sendHeaders();
+}
+
+Steam_Web::send_response();
 
 // fire the unload event which occurs at the end of execution
 Steam_Event::trigger('unload');

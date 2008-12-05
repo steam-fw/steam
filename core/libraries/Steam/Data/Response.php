@@ -2,60 +2,45 @@
 
 class Steam_Data_Response
 {
-    public $status = 500;
-    public $error  = '';
-    public $items  = array();
-    public $total_items = 0;
-    public $start_index = 1;
+    protected $sxe;
     
-    public function get_xml()
+    public function __construct()
     {
-        $items = '';
+        $xml = '<?xml version="1.0" encoding="utf-8"?>' . "\n" .
+               '<data>' . "\n" .
+               '    <status>500</status>' . "\n" .
+               '    <error></error>' . "\n" .
+               '    <total_items>0</total_items>' . "\n" .
+               '    <start_index>1</start_index>' . "\n" .
+               '    <items></items>' . "\n" .
+               '</data>';
         
-        foreach ($this->items as $item)
-        {
-            $items .= '        <item>' . "\n";
-            
-            foreach ($item as $field => $value)
-            {
-                $items .= $this->get_field_xml($field, $value);
-            }
-            
-            $items .= '        </item>' . "\n";
-        }
-        
-        $xml =
-            '<?xml version="1.0" encoding="utf-8"?>' . "\n" .
-            '<data>' . "\n" .
-            '    <items>' . "\n" .
-            $items .
-            '    </items>' . "\n" .
-            '</data>' . "\n";
-        
-        return $xml;
+        $this->sxe = new SimpleXMLElement($xml);
     }
     
-    protected function get_field_xml($field, $value, $depth = 0)
+    public function __set($name, $value)
     {
-        $indent = str_repeat('    ', $depth + 3);
-        
-        if (is_array($value))
-        {
-            $xml = $indent . '<' . $field . '>' . "\n";
-            
-            foreach ($value as $subfield => $subvalue)
-            {
-                $xml .= $this->get_field_xml($subfield, $subvalue, $depth + 1);
-            }
-            
-            $xml .= $indent . '</' . $field . '>' . "\n";
-        }
-        else
-        {
-            $xml = $indent . '<' . $field . '>' . htmlspecialchars($value) . '</' . $field . '>' . "\n";
-        }
-        
-        return $xml;
+        $this->sxe->$name = $value;
+    }
+    
+    public function __get($name)
+    {
+        return $this->sxe->$name;
+    }
+    
+    public function __isset($name)
+    {
+        return isset($this->sxe->$name);
+    }
+    
+    public function __unset($name)
+    {
+        unset($this->sxe->$name);
+    }
+    
+    public function __call($method, $arguments)
+    {
+        return call_user_func_array(array($this->sxe, $method), $arguments);
     }
 }
 
