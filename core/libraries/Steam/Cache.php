@@ -63,7 +63,7 @@ class Steam_Cache
     {
         if (!self::$cache->save($value, md5($context . $identifier)))
         {
-            throw new Steam_Exception_Cache(Steam_Lang::_('There was a problem storing data in the cache.'));
+            throw new Steam_Exception_Cache(gettext('There was a problem storing data in the cache.'));
         }
     }
     
