@@ -2,7 +2,7 @@
 /**
  * Steam Web Class
  *
- * This class loads pages.
+ * This class loads web resources.
  *
  * Copyright 2008-2009 Shaddy Zeineddine
  *
@@ -35,8 +35,9 @@ class Steam_Web
     protected static $body = '';
     
     /**
-     * Loads a page based on the given page code. Page code defaults to
-     * "default". If the URI targets the API, the request is processed.
+     * Loads a resource based on the given resource code. Resource code
+     * defaults to "default". If the URI targets the API, the request is
+     * processed.
      *
      * @return void
      * @param object $uri Steam_Web_URI object
@@ -44,8 +45,8 @@ class Steam_Web
     public static function load(Steam_Web_URI $uri)
     {
         // set the app environment variables
-        Steam::$app_id   = $uri->get_app_id();
-        Steam::$app_name = $uri->get_app_name();
+        Steam::$app_id   = $uri->app_id();
+        Steam::$app_name = $uri->app_name();
         Steam::$app_uri  = Steam::$base_uri . '/' . Steam::$app_name;
         
         // if the app is the api, process the request and return response
@@ -54,33 +55,33 @@ class Steam_Web
             return self::process_api_request($uri);
         }
         
-        $page_name = $uri->get_page_name();
+        $resource_name = $uri->resource_name();
         
-        // if there was no page name specified, load the default page
-        if (!$page_name)
+        // if there was no resource name specified, load the default resource
+        if (!$resource_name)
         {
-            $page_name = 'default';
+            $resource_name = 'default';
         }
         
         try
         {
-            // try to load the global page if it exists
-            include Steam::$base_dir . 'apps/' . $uri->get_app_name() . '/pages/global.php';
+            // try to load the global resource if it exists
+            include Steam::$base_dir . 'apps/' . $uri->app_name() . '/resources/global.php';
         }
         catch (Steam_Exception_FileNotFound $exception)
         {
         }
         catch (Exception $exception)
         {
-            // if the global page raised an exception, display an error page
+            // if the global resource raised an exception, display an error page
             include Steam::$base_dir . 'apps/global/error_pages/HTTP_500.php';
             return;
         }
         
         try
         {
-            // try to load the requested page
-            include Steam::$base_dir . 'apps/' . $uri->get_app_name() . '/pages/' . $page_name . '.php';
+            // try to load the requested resource
+            include Steam::$base_dir . 'apps/' . $uri->app_name() . '/resources/' . $resource_name . '.php';
             return;
         }
         catch (Steam_Exception_FileNotFound $exception)
@@ -130,7 +131,7 @@ class Steam_Web
         }
         
         // perform the actual request
-        $response = Steam_Data::request($method, $uri->get_page_name(), $query);
+        $response = Steam_Data::request($method, $uri->resource_name(), $query);
         
         // output the status of the response
         self::header('HTTP/1.1 ' . $response->status . ' ' . Zend_Http_Response::responseCodeAsText(intval($response->status)));

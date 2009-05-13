@@ -36,7 +36,7 @@ class Steam_Web_URI
     protected $path;
     protected $app_id;
     protected $app_name;
-    protected $page_name;
+    protected $resource_name;
     
     /**
      * Returns a string representation of the URI.
@@ -86,7 +86,7 @@ class Steam_Web_URI
     
     /**
      * parses the given URI or the current URI and extracts the app_id and
-     * page_name from it.
+     * resource_name from it.
      *
      * @return void
      * @param string $uri URI
@@ -110,44 +110,44 @@ class Steam_Web_URI
             Steam_Cache::set('portal', $this->domain . $this->path, $portal_data);
         }
         
-        $this->app_id    = $portal_data['app_id'];
-        $this->app_name  = $portal_data['app_name'];
-        $this->page_name = trim(preg_replace('/^' . preg_quote(Steam::$base_uri . trim($portal_data['path'], '%'), '/') . '/i', '', $this->path), '/');
+        $this->app_id        = $portal_data['app_id'];
+        $this->app_name      = $portal_data['app_name'];
+        $this->resource_name = trim(preg_replace('/^' . preg_quote(Steam::$base_uri . trim($portal_data['path'], '%'), '/') . '/i', '', $this->path), '/');
     }
     
-    public function get_uri()
+    public function uri()
     {
         return $this->uri;
     }
     
-    public function get_scheme()
+    public function scheme()
     {
         return $this->scheme;
     }
     
-    public function get_domain()
+    public function domain()
     {
         return $this->domain;
     }
     
-    public function get_path()
+    public function path()
     {
         return $this->path;
     }
     
-    public function get_app_id()
+    public function app_id()
     {
         return $this->app_id;
     }
     
-    public function get_app_name()
+    public function app_name()
     {
         return $this->app_name;
     }
     
-    public function get_page_name()
+    public function resource_name()
     {
-        return $this->page_name;
+        return $this->resource_name;
     }
 }
 
