@@ -29,9 +29,9 @@
  */
 
 // initialize the Steam environment
-require_once 'core/initializer.php';
+require_once 'initializer.php';
 
 // load the web interface script
-require_once Steam::$base_dir . 'core/interfaces/web.php';
+require_once Steam::$base_dir . 'interfaces/web.php';
 
 ?>

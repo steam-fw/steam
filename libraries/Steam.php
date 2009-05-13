@@ -74,7 +74,7 @@ class Steam
     public static function initialize()
     {
         // add the Steam library path to the include path
-        set_include_path(self::$base_dir . 'core/libraries' . PATH_SEPARATOR . get_include_path());
+        set_include_path(self::$base_dir . 'libraries' . PATH_SEPARATOR . get_include_path());
         
         // include the Zend Loader class
         require_once "Zend/Loader.php";

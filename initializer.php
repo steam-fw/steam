@@ -32,10 +32,10 @@
 ob_start();
 
 // identify the directory where Steam resides
-$base_dir = str_replace('core/initializer.php', '', __FILE__);
+$base_dir = str_replace('initializer.php', '', __FILE__);
 
 // include the Steam class
-require_once $base_dir . 'core/libraries/Steam.php';
+require_once $base_dir . 'libraries/Steam.php';
 
 // move the base_dir var to the Steam class and unset the temporary var
 Steam::$base_dir = $base_dir;
@@ -45,7 +45,7 @@ unset($base_dir);
 Steam::initialize();
 
 // include useful functions to augment PHP's built-in functions
-require_once Steam::$base_dir . 'core/functions.php';
+require_once Steam::$base_dir . 'functions.php';
 
 // fire the ready event
 Steam_Event::trigger('ready');
