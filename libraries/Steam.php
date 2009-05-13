@@ -76,14 +76,17 @@ class Steam
         // add the Steam library path to the include path
         set_include_path(self::$base_dir . 'libraries' . PATH_SEPARATOR . get_include_path());
         
-        // include the Zend Loader class
-        require_once "Zend/Loader.php";
-        
-        // activate the autoloader
-        Zend_Loader::registerAutoload();
-        
         // load the configuration file
         require_once self::$base_dir . 'config.php';
+        
+        // include the Zend Loader class
+        require_once "Zend/Loader/Autoloader.php";
+        
+        // add the Steam library to the autoloader
+        $libraries[] = 'Steam_';
+        
+        // activate the autoloader
+        Zend_Loader_Autoloader::getInstance()->registerNamespace($libraries);
         
         // store certain configuration variables
         self::$base_uri    = $base_uri;

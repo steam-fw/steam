@@ -33,6 +33,9 @@ $locale           = 'en_US.utf8';
 $timezone         = 'America/Los_Angeles';
 $base_uri         = '/steam';
 
+$libraries        = array(
+    );
+
 $cache_backend    = 'Memcached';
 $cache_params     = array(
     'servers' => array(
