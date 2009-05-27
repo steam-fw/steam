@@ -42,6 +42,37 @@ class Steam_Data_Response
     {
         return call_user_func_array(array($this->sxe, $method), $arguments);
     }
+    
+    public function add_items(&$items)
+    {
+        foreach ($items as &$item)
+        {
+            $item_elemment = $this->items->addChild('item');
+            
+            foreach ($item as $name => $value)
+            {
+                if ($value === '')
+                {
+                    $value = NULL;
+                }
+                
+                $item_elemment->addChild($name, $value);
+            }
+            
+            $item = NULL;
+        }
+        unset($item);
+    }
+    
+    public function get_item($index)
+    {
+        return $this->sxe->items->item[$index];
+    }
+    
+    public function next_item()
+    {
+        return $this->get_item($this->index++);
+    }
 }
 
 ?>
