@@ -4,8 +4,13 @@ class Steam_Data_Query
 {
     protected $sxe;
     
-    public function __construct($xml)
+    public function __construct($xml = NULL)
     {
+        if (is_null($xml))
+        {
+            $xml = array();
+        }
+        
         if (is_array($xml))
         {
             $xml = self::get_to_xml($xml);

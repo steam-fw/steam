@@ -47,6 +47,24 @@ class Steam_Web_Page
     }
     
     /**
+    * Sets the layout if a parameter if passed, otherwise, gets current layout.
+    *
+    * @return string|void
+    * @param string $layout page layout
+    */
+    public function layout($layout = NULL)
+    {
+        if (is_null($layout))
+        {
+            return $this->layout;
+        }
+        else
+        {
+            $this->layout = $layout;
+        }
+    }
+    
+    /**
      * Inserts a component to the page at the specified destination.
      *
      * @return void

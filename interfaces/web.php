@@ -34,10 +34,9 @@ Steam::$interface = 'web';
 switch (Steam::$environment)
 {
     case 'development':
-        $request  = new Zend_Controller_Request_Http();
         $response = new Zend_Controller_Response_Http();
         $channel = Zend_Wildfire_Channel_HttpHeaders::getInstance();
-        $channel->setRequest($request);
+        $channel->setRequest(new Zend_Controller_Request_Http());
         $channel->setResponse($response);
         $firebug = new Zend_Log_Writer_Firebug;
         Steam_Logger::add_writer($firebug);

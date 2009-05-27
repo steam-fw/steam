@@ -117,7 +117,7 @@ class Steam_Data
             // the rest are data specific parameters
             // include the script which contains the data manipulation code
             $parameters = (isset($resource_components[3])) ? explode('/', trim($resource_components[3], '/')) : array();
-            include Steam::$base_dir . 'apps/' . $resource_components[1] . '/queries/' . $resource_components[2] . '/' . $method . '.php';
+            include Steam::$base_dir . 'apps/' . $resource_components[1] . '/resources/' . $resource_components[2] . '/' . $method . '.php';
         }
         // if there are access requirements which were not fulfilled
         // it's the manipulation script's responsibility to throw this
@@ -130,7 +130,7 @@ class Steam_Data
         catch (Steam_Exception_FileNotFound $exception)
         {
             // if the resource exists, then the method isn't implemented
-            if (file_exists(Steam::$base_dir . 'apps/' . $resource_components[1] . '/queries/' . $resource_components[2]))
+            if (file_exists(Steam::$base_dir . 'apps/' . $resource_components[1] . '/resources/' . $resource_components[2]))
             {
                 $response->status = 405;
             }

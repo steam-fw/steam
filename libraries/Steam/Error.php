@@ -106,7 +106,7 @@ class Steam_Error
      * @return void
      * @param object $exception exception
      */
-    public static function exception_handler($exception)
+    public static function exception_handler(Exception $exception)
     {
         try
         {
@@ -118,7 +118,7 @@ class Steam_Error
         }
     }
     
-    protected static function log_exception($exception)
+    public static function log_exception(Exception $exception)
     {
             $message = $exception->getMessage() . ' on line ' . $exception->getLine() . ' of ' . $exception->getFile();
             

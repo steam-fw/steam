@@ -33,6 +33,7 @@ class Steam_Web
     protected static $headers_sent = false;
     protected static $headers = array();
     protected static $body = '';
+    public    static $page_name = '';
     
     /**
      * Loads a resource based on the given resource code. Resource code
@@ -55,21 +56,24 @@ class Steam_Web
             return self::process_api_request($uri);
         }
         
-        $resource_name = $uri->resource_name();
+        $page_name = $uri->resource_name();
         
         // if there was no resource name specified, load the default resource
-        if (!$resource_name)
+        if (!$page_name)
         {
-            $resource_name = 'default';
+            $page_name = 'default';
         }
+        
+        Steam_Web::$page_name = $page_name;
         
         try
         {
-            // try to load the global resource if it exists
-            include Steam::$base_dir . 'apps/' . $uri->app_name() . '/resources/global.php';
+            // try to load the global page if it exists
+            include Steam::$base_dir . 'apps/' . $uri->app_name() . '/pages/global.php';
         }
         catch (Steam_Exception_FileNotFound $exception)
         {
+            // no global page, continue
         }
         catch (Exception $exception)
         {
@@ -80,8 +84,8 @@ class Steam_Web
         
         try
         {
-            // try to load the requested resource
-            include Steam::$base_dir . 'apps/' . $uri->app_name() . '/resources/' . $resource_name . '.php';
+            // try to load the requested page
+            include Steam::$base_dir . 'apps/' . $uri->app_name() . '/pages/' . $page_name . '.php';
             return;
         }
         catch (Steam_Exception_FileNotFound $exception)
@@ -258,6 +262,20 @@ class Steam_Web
     public static function raw_request()
     {
         return file_get_contents('php://input');
+    }
+    
+    /**
+     * Redirects the user to the specified page. The page name should not
+     * include any other part of the uri.
+     *
+     * @return void
+     * @param string $page page name
+     */
+    public static function redirect($page = '')
+    {
+        Steam_Web::header('Location', Steam::$app_uri . '/' . $page);
+        Steam_Web::send_response();
+        exit;
     }
 }
 
