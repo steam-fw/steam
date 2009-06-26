@@ -38,8 +38,7 @@ switch (Steam::$environment)
         $channel = Zend_Wildfire_Channel_HttpHeaders::getInstance();
         $channel->setRequest(new Zend_Controller_Request_Http());
         $channel->setResponse($response);
-        $firebug = new Zend_Log_Writer_Firebug;
-        Steam_Logger::add_writer($firebug);
+        Steam_Logger::add_writer(new Zend_Log_Writer_Firebug);
         break;
     default:
         $syslog = new Zend_Log_Writer_Syslog;

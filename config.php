@@ -53,7 +53,8 @@ $db_params        = array(
             'host'     => 'localhost',
             'username' => 'root',
             'password' => '',
-            'dbname'   => 'steam'
+            'dbname'   => 'steam',
+            'adapterNamespace' => 'Steam_Db_Adapter'
             ),
         ),
     'read'   => array(

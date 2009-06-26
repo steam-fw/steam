@@ -58,7 +58,7 @@ class Steam_Db
         {
             $use_type = (count($parameters[$type])) ? $type : 'write';
             
-            self::$servers[$type] = Zend_Db::factory($adapter, $parameters[$use_type][ array_rand($parameters[$use_type]) ]);
+            self::$servers[$type] = Zend_Db::factory($adapter, $parameters[$use_type][array_rand($parameters[$use_type])]);
         }
     }
     

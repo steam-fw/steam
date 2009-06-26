@@ -36,7 +36,9 @@ class Steam_Web_URI
     protected $path;
     protected $app_id;
     protected $app_name;
+    protected $app_uri;
     protected $resource_name;
+    protected $portal_uri;
     
     /**
      * Returns a string representation of the URI.
@@ -101,18 +103,33 @@ class Steam_Web_URI
         {
             $db = Steam_Db::read();
             $select = $db->select();
-            $select->from('portals', array('app_id', 'path'))
-                   ->join('apps', 'apps.app_id = portals.app_id', array('app_name'))
+            $select->from('portals', array('app_id', 'domain', 'path', 'resource_name'))
+                   ->join('apps', 'apps.app_id = portals.app_id', array('app_name', 'app_uri'))
                    ->where($db->quote($this->domain) . ' LIKE domain AND ' . $db->quote($this->path) . ' LIKE CONCAT(' . $db->quote(Steam::$base_uri) . ', path)')
                    ->order('portal_sequence ASC');
             $portal_data = $select->query()->fetch();
+            
+            $this->resource_name = $portal_data['resource_name'];
             
             Steam_Cache::set('portal', $this->domain . $this->path, $portal_data);
         }
         
         $this->app_id        = $portal_data['app_id'];
         $this->app_name      = $portal_data['app_name'];
-        $this->resource_name = trim(preg_replace('/^' . preg_quote(Steam::$base_uri . trim($portal_data['path'], '%'), '/') . '/i', '', $this->path), '/');
+        $this->app_uri       = Steam::$base_uri . $portal_data['app_uri']; //this should be the default app uri, rather than the portal ???
+        $this->portal_uri    = rtrim(preg_replace('/%.*$/', '', Steam::$base_uri . $portal_data['path']), '/');
+        $this->app_full_uri  = $this->scheme . $portal_data['domain'] . preg_replace('/%.*$/', '', Steam::$base_uri . $portal_data['path']);
+        
+        if ($this->resource_name == '')
+        {
+            $this->resource_name = trim(preg_replace('/^' . preg_quote(Steam::$base_uri . trim($portal_data['path'], '%'), '/') . '/i', '', $this->path), '/');
+            
+            // if there was no resource name specified, use default
+            if ($this->resource_name == '')
+            {
+                $this->resource_name = 'default';
+            }
+        }
     }
     
     public function uri()
@@ -145,9 +162,19 @@ class Steam_Web_URI
         return $this->app_name;
     }
     
+    public function app_uri()
+    {
+        return $this->app_uri;
+    }
+    
     public function resource_name()
     {
         return $this->resource_name;
+    }
+    
+    public function portal_uri()
+    {
+        return $this->portal_uri;
     }
 }
 

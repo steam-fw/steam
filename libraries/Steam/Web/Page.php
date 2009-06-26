@@ -120,7 +120,7 @@ class Steam_Web_Page
         
         $uris = array(
             'BASE' => Steam::$base_uri,
-            'APP'  => Steam::$base_uri . '/' . Steam::$app_name,
+            'APP'  => Steam::$app_uri,
             );
         
         foreach ($uris as $name => $value)
@@ -147,7 +147,8 @@ class Steam_Web_Page
         
         foreach ($this->css as $css => $media)
         {
-            $page = str_replace('</head>', '<link rel="stylesheet" type="text/css" href="' . $uris['APP'] . '/css/' . $css . '" media="' . $media . '"/>' . "\n" . '</head>', $page);
+            $href = (strpos($css, 'http://') === false) ? $uris['APP'] . '/css/' . $css : $css;
+            $page = str_replace('</head>', '<link rel="stylesheet" type="text/css" href="' . $href . '" media="' . $media . '"/>' . "\n" . '</head>', $page);
         }
         $this->css = array();
         unset($css);
@@ -155,7 +156,8 @@ class Steam_Web_Page
         
         foreach ($this->script as $script => $type)
         {
-            $page = str_replace('</head>', '<script type="' . $type . '" src="' . $uris['APP'] . '/script/' . $script . '"></script>' . "\n" . '</head>', $page);
+            $src  = (strpos($script, 'http://') === false) ? $uris['APP'] . '/script/' . $script : $script;
+            $page = str_replace('</head>', '<script type="' . $type . '" src="' . $src . '"></script>' . "\n" . '</head>', $page);
         }
         $this->script = array();
         unset($script);

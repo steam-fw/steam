@@ -61,7 +61,7 @@ class Steam_Web_Page_Component
         $args = func_get_args();
         $name = array_shift($args);
         
-        if (!array_key_exists($args[0], $this->options))
+        if (isset($args[0]))
         {
             $value = array_shift($args);
             
@@ -74,9 +74,13 @@ class Steam_Web_Page_Component
                 $this->options[$name] = $value;
             }
         }
-        else
+        elseif (isset($this->options[$name]))
         {
             return $this->options[$name];
+        }
+        else
+        {
+            return NULL;
         }
     }
     
@@ -89,7 +93,14 @@ class Steam_Web_Page_Component
      */
     public function data($data)
     {
-        $this->data = $data;
+        if (is_object($data))
+        {
+            $this->data = clone $data;
+        }
+        else
+        {
+            $this->data = $data;
+        }
     }
     
     public function page(Steam_Web_Page &$page)

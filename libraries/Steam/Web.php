@@ -31,9 +31,9 @@
 class Steam_Web
 {
     protected static $headers_sent = false;
-    protected static $headers = array();
-    protected static $body = '';
-    public    static $page_name = '';
+    protected static $headers      = array();
+    protected static $body         = '';
+    protected static $uri;
     
     /**
      * Loads a resource based on the given resource code. Resource code
@@ -45,10 +45,13 @@ class Steam_Web
      */
     public static function load(Steam_Web_URI $uri)
     {
+        // store the loaded uri
+        self::$uri = $uri;
+        
         // set the app environment variables
         Steam::$app_id   = $uri->app_id();
         Steam::$app_name = $uri->app_name();
-        Steam::$app_uri  = Steam::$base_uri . '/' . Steam::$app_name;
+        Steam::$app_uri  = $uri->app_uri();
         
         // if the app is the api, process the request and return response
         if (Steam::$app_name == 'api')
@@ -57,14 +60,6 @@ class Steam_Web
         }
         
         $page_name = $uri->resource_name();
-        
-        // if there was no resource name specified, load the default resource
-        if (!$page_name)
-        {
-            $page_name = 'default';
-        }
-        
-        Steam_Web::$page_name = $page_name;
         
         try
         {
@@ -77,6 +72,11 @@ class Steam_Web
         }
         catch (Exception $exception)
         {
+            Steam_Error::log_exception($exception);
+            
+            // set the HTTP status code and message
+            self::header('HTTP/1.1 500 ' . Zend_Http_Response::responseCodeAsText(500));
+            
             // if the global resource raised an exception, display an error page
             include Steam::$base_dir . 'apps/global/error_pages/HTTP_500.php';
             return;
@@ -90,12 +90,20 @@ class Steam_Web
         }
         catch (Steam_Exception_FileNotFound $exception)
         {
+            // set the HTTP status code and message
+            self::header('HTTP/1.1 404 ' . Zend_Http_Response::responseCodeAsText(404));
+            
             // if it's not found, display the 404 error page
             include Steam::$base_dir . 'apps/global/error_pages/HTTP_404.php';
             return;
         }
         catch (Exception $exception)
         {
+            Steam_Error::log_exception($exception);
+            
+            // set the HTTP status code and message
+            self::header('HTTP/1.1 500 ' . Zend_Http_Response::responseCodeAsText(500));
+            
             // if it raised an exception, show the 500 error page
             include Steam::$base_dir . 'apps/global/error_pages/HTTP_500.php';
             return;
@@ -117,7 +125,14 @@ class Steam_Web
             case 'POST':
                 $method = 'create';
                 // translate the xml in the request to a query object
-                $query = new Steam_Data_Query(Steam_Web::raw_request());
+                try
+                {
+                    $query = new Steam_Data_Query(Steam_Web::raw_request());
+                }
+                catch (Steam_Exception_Type $exception)
+                {
+                    $query = new Steam_Data_Query($_POST);
+                }
                 break;
             case 'GET':
                 $method = 'retrieve';
@@ -159,6 +174,11 @@ class Steam_Web
         }
         
         self::send_response();
+    }
+    
+    public static function uri()
+    {
+        return self::$uri;
     }
     
     public static function header($header, $value = NULL)
@@ -271,8 +291,15 @@ class Steam_Web
      * @return void
      * @param string $page page name
      */
-    public static function redirect($page = '')
+    public static function redirect($page = '', $set_referrer = true)
     {
+        if ($set_referrer)
+        {
+            $session = new Zend_Session_Namespace('ridazz');
+            $session->referrer = self::$uri->resource_name();
+        }
+        
+        Steam_Web::header('HTTP/1.1 303 See Other');
         Steam_Web::header('Location', Steam::$app_uri . '/' . $page);
         Steam_Web::send_response();
         exit;

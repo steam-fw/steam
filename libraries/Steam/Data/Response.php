@@ -3,6 +3,7 @@
 class Steam_Data_Response
 {
     protected $sxe;
+    protected $index = 0;
     
     public function __construct()
     {
@@ -47,21 +48,25 @@ class Steam_Data_Response
     {
         foreach ($items as &$item)
         {
-            $item_elemment = $this->items->addChild('item');
-            
-            foreach ($item as $name => $value)
-            {
-                if ($value === '')
-                {
-                    $value = NULL;
-                }
-                
-                $item_elemment->addChild($name, $value);
-            }
-            
+            $this->add_item($item);
             $item = NULL;
         }
         unset($item);
+    }
+    
+    public function add_item($item)
+    {
+        $item_elemment = $this->sxe->items->addChild('item');
+        
+        foreach ($item as $name => $value)
+        {
+            if ($value === '')
+            {
+                $value = NULL;
+            }
+            
+            $item_elemment->addChild($name, $value);
+        }
     }
     
     public function get_item($index)
@@ -72,6 +77,11 @@ class Steam_Data_Response
     public function next_item()
     {
         return $this->get_item($this->index++);
+    }
+    
+    public function rewind()
+    {
+        $this->index = 0;
     }
 }
 
