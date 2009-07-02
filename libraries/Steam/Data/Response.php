@@ -1,9 +1,7 @@
 <?php
 
-class Steam_Data_Response
+class Steam_Data_Response extends Steam_Data_Query
 {
-    protected $sxe;
-    protected $index = 0;
     
     public function __construct()
     {
@@ -19,69 +17,14 @@ class Steam_Data_Response
         $this->sxe = new SimpleXMLElement($xml);
     }
     
-    public function __set($name, $value)
+    public function add_results(&$select)
     {
-        $this->sxe->$name = $value;
-    }
-    
-    public function __get($name)
-    {
-        return $this->sxe->$name;
-    }
-    
-    public function __isset($name)
-    {
-        return isset($this->sxe->$name);
-    }
-    
-    public function __unset($name)
-    {
-        unset($this->sxe->$name);
-    }
-    
-    public function __call($method, $arguments)
-    {
-        return call_user_func_array(array($this->sxe, $method), $arguments);
-    }
-    
-    public function add_items(&$items)
-    {
-        foreach ($items as &$item)
+        $statement = $select->query();
+        
+        while ($item = $statement->fetch())
         {
             $this->add_item($item);
-            $item = NULL;
         }
-        unset($item);
-    }
-    
-    public function add_item($item)
-    {
-        $item_elemment = $this->sxe->items->addChild('item');
-        
-        foreach ($item as $name => $value)
-        {
-            if ($value === '')
-            {
-                $value = NULL;
-            }
-            
-            $item_elemment->addChild($name, $value);
-        }
-    }
-    
-    public function get_item($index)
-    {
-        return $this->sxe->items->item[$index];
-    }
-    
-    public function next_item()
-    {
-        return $this->get_item($this->index++);
-    }
-    
-    public function rewind()
-    {
-        $this->index = 0;
     }
 }
 

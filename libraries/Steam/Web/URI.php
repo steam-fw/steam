@@ -39,6 +39,7 @@ class Steam_Web_URI
     protected $app_uri;
     protected $resource_name;
     protected $portal_uri;
+    protected $api;
     
     /**
      * Returns a string representation of the URI.
@@ -97,13 +98,15 @@ class Steam_Web_URI
     {
         try
         {
-            $portal_data = Steam_Cache::get('portal', $this->domain . $this->path);
+            $portal_data = Steam_Cache::get('/global/portal', $this->domain . $this->path);
+            
+            $this->resource_name = $portal_data['resource_name'];
         }
         catch (Steam_Exception_Cache $exception)
         {
             $db = Steam_Db::read();
             $select = $db->select();
-            $select->from('portals', array('app_id', 'domain', 'path', 'resource_name'))
+            $select->from('portals', array('app_id', 'domain', 'path', 'resource_name', 'api'))
                    ->join('apps', 'apps.app_id = portals.app_id', array('app_name', 'app_uri'))
                    ->where($db->quote($this->domain) . ' LIKE domain AND ' . $db->quote($this->path) . ' LIKE CONCAT(' . $db->quote(Steam::$base_uri) . ', path)')
                    ->order('portal_sequence ASC');
@@ -111,7 +114,7 @@ class Steam_Web_URI
             
             $this->resource_name = $portal_data['resource_name'];
             
-            Steam_Cache::set('portal', $this->domain . $this->path, $portal_data);
+            Steam_Cache::set('/global/portal', $this->domain . $this->path, $portal_data);
         }
         
         $this->app_id        = $portal_data['app_id'];
@@ -119,6 +122,7 @@ class Steam_Web_URI
         $this->app_uri       = Steam::$base_uri . $portal_data['app_uri']; //this should be the default app uri, rather than the portal ???
         $this->portal_uri    = rtrim(preg_replace('/%.*$/', '', Steam::$base_uri . $portal_data['path']), '/');
         $this->app_full_uri  = $this->scheme . $portal_data['domain'] . preg_replace('/%.*$/', '', Steam::$base_uri . $portal_data['path']);
+        $this->api           = ($portal_data['api'] == 1) ? true : false;
         
         if ($this->resource_name == '')
         {
@@ -175,6 +179,11 @@ class Steam_Web_URI
     public function portal_uri()
     {
         return $this->portal_uri;
+    }
+    
+    public function api()
+    {
+        return $this->api;
     }
 }
 

@@ -61,7 +61,7 @@ class Steam_Cache
      */
     public static function set($context, $identifier, $value)
     {
-        if (!self::$cache->save($value, md5($context . $identifier)))
+        if (!self::$cache->save($value, md5(self::format_context($context) . $identifier)))
         {
             throw new Steam_Exception_Cache(gettext('There was a problem storing data in the cache.'));
         }
@@ -78,7 +78,7 @@ class Steam_Cache
      */
     public static function get($context, $identifier)
     {
-        if (!$value = self::$cache->load(md5($context . $identifier)))
+        if (!$value = self::$cache->load(md5(self::format_context($context) . $identifier)))
         {
             throw new Steam_Exception_Cache(gettext('The specified data does not exist within the cache.'));
         }
@@ -97,7 +97,7 @@ class Steam_Cache
      */
     public static function delete($context, $identifier)
     {
-        if (!self::$cache->remove(md5($context . $identifier)))
+        if (!self::$cache->remove(md5(self::format_context($context) . $identifier)))
         {
             throw new Steam_Exception_Cache(gettext('There was a problem deleting the stored data.'));
         }
@@ -126,6 +126,23 @@ class Steam_Cache
     public static function get_cache()
     {
         return self::$cache;
+    }
+    
+    /**
+     * Converts a relative context into an absolute context by prefixing it with
+     * the application name if applicable.
+     *
+     * @return string absolute data context
+     * @param string $context data context
+     */
+    protected static function format_context($context)
+    {
+        if ($context[0] != '/')
+        {
+            $context = '/' . Steam::$app_name . '/' . $context;
+        }
+        
+        return $context;
     }
 }
 

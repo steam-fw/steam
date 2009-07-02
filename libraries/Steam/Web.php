@@ -53,8 +53,8 @@ class Steam_Web
         Steam::$app_name = $uri->app_name();
         Steam::$app_uri  = $uri->app_uri();
         
-        // if the app is the api, process the request and return response
-        if (Steam::$app_name == 'api')
+        // if the portal is for api requests, process the request and return response
+        if ($uri->api())
         {
             return self::process_api_request($uri);
         }

@@ -53,12 +53,12 @@ class Steam
     /**
      * The current application identifier
      */
-    public static $app_id;
+    public static $app_id = 0;
     
     /**
      * The current application name, the name of its directory
      */
-    public static $app_name;
+    public static $app_name = 'global';
     
     /**
      * The current application URI which includes the base uri

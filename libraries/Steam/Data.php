@@ -101,18 +101,39 @@ class Steam_Data
      */
     public static function request($method, $resource, Steam_Data_Query $query = NULL)
     {
-        $response = new Steam_Data_Response;
-        
-        // check the resource identifier to make sure it's valid
-        if (!preg_match('/^([^\\/]+)\\/([^\\/]+)(\\/.*)?$/', $resource, $resource_components))
+        if (is_null($query))
         {
-            $response->status = 400;
-            return $response;
+            $query = new Steam_Data_Query();
         }
         
+        $response = new Steam_Data_Response();
+        
+        // check the resource identifier to make sure it's valid
+        // the first piece of the identifier is the app name
+        // the second piece is the name of the resource
+        // the third piece is an optional identifier
+        if (preg_match('/^(\\/[^\\/]+\\/)?([^\\/]+)(\\/.*)?$/', $resource, $resource_components))
+        {
+            $query->app_name      = ($resource_components[1]) ? trim($resource_components[1], '/') : Steam::$app_name;
+            $query->method        = $method;
+            $query->resource_name = $resource_components[2];
+            $query->resource_id   = (isset($resource_components[3])) ? trim($resource_components[3], '/') : NULL;
+            
+            self::_request($query, $response);
+        }
+        else
+        {
+            $response->status = 400;
+        }
+        
+        return $response;
+    }
+    
+    private static function _request(&$query, &$response)
+    {
         try
         {
-            include_once Steam::$base_dir . 'apps/' . $resource_components[1] . '/resources/dynamic/global.php';
+            include_once Steam::$base_dir . 'apps/' . $query->app_name . '/resources/dynamic/global.php';
         }
         catch (Steam_Exception_FileNotFound $exception)
         {
@@ -123,17 +144,13 @@ class Steam_Data
             $response->status = 500;
             $response->error  = $exception->getMessage();
             
-            return $response;
+            return;
         }
         
         try
         {
-            // the first piece of the identifier is the app name
-            // the second piece is the relative data uri
-            // the rest are data specific parameters
             // include the script which contains the data manipulation code
-            $parameters = (isset($resource_components[3])) ? explode('/', trim($resource_components[3], '/')) : array();
-            include Steam::$base_dir . 'apps/' . $resource_components[1] . '/resources/dynamic/' . $resource_components[2] . '/' . $method . '.php';
+            include Steam::$base_dir . 'apps/' . $query->app_name . '/resources/dynamic/' . $query->resource_name . '/' . $query->method . '.php';
         }
         // if there are access requirements which were not fulfilled
         // it's the manipulation script's responsibility to throw this
@@ -146,7 +163,7 @@ class Steam_Data
         catch (Steam_Exception_FileNotFound $exception)
         {
             // if the resource exists, then the method isn't implemented
-            if (file_exists(Steam::$base_dir . 'apps/' . $resource_components[1] . '/resources/dynamic/' . $resource_components[2]))
+            if (file_exists(Steam::$base_dir . 'apps/' . $query->app_name . '/resources/dynamic/' . $query->resource_name))
             {
                 $response->status = 405;
             }
@@ -163,8 +180,6 @@ class Steam_Data
             $response->status = 500;
             $response->error  = $exception->getMessage();
         }
-        
-        return $response;
     }
 }
 
