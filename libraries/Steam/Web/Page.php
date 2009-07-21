@@ -111,7 +111,7 @@ class Steam_Web_Page
     {
         try
         {
-            $page = file_get_contents(Steam::$base_dir . 'apps/' . Steam::$app_name . '/layouts/' . $this->layout);
+            $page = file_get_contents(Steam::path('apps/' . Steam_Application::name() . '/layouts/' . $this->layout));
         }
         catch (Steam_Exception_FileNotFound $exception)
         {
@@ -119,8 +119,8 @@ class Steam_Web_Page
         }
         
         $uris = array(
-            'BASE' => Steam::$base_uri,
-            'APP'  => Steam::$app_uri,
+            'BASE' => Steam_Web::base_uri(),
+            'APP'  => Steam_Application::base_uri(),
             );
         
         foreach ($uris as $name => $value)

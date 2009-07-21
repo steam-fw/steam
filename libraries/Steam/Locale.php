@@ -57,7 +57,7 @@ class Steam_Locale
         Zend_Registry::set('Zend_Locale', new Zend_Locale($locale));
         
         // create an instance of Zend_Translate for translating core Steam text
-        self::$translator = new Zend_Translate('gettext', Steam::$base_dir . 'apps/steam/translations', NULL, array('scan' => Zend_Translate::LOCALE_DIRECTORY));
+        self::$translator = new Zend_Translate('gettext', Steam::path('apps/global/translations'), NULL, array('scan' => Zend_Translate::LOCALE_DIRECTORY));
     }
     
     /**

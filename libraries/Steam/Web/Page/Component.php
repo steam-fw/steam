@@ -123,7 +123,7 @@ class Steam_Web_Page_Component
         
         try
         {
-            $output = include Steam::$base_dir . 'apps/' . Steam::$app_name . '/components/' . $this->name . '.php';
+            $output = include Steam::path('apps/' . Steam_Application::name() . '/components/' . $this->name . '.php');
             return $output;
         }
         catch (Exception $exception)

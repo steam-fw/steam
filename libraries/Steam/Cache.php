@@ -139,7 +139,7 @@ class Steam_Cache
     {
         if ($context[0] != '/')
         {
-            $context = '/' . Steam::$app_name . '/' . $context;
+            $context = '/' . Steam_Application::name() . '/' . $context;
         }
         
         return $context;

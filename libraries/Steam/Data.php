@@ -114,7 +114,7 @@ class Steam_Data
         // the third piece is an optional identifier
         if (preg_match('/^(\\/[^\\/]+\\/)?([^\\/]+)(\\/.*)?$/', $resource, $resource_components))
         {
-            $query->app_name      = ($resource_components[1]) ? trim($resource_components[1], '/') : Steam::$app_name;
+            $query->app_name      = ($resource_components[1]) ? trim($resource_components[1], '/') : Steam_Application::name();
             $query->method        = $method;
             $query->resource_name = $resource_components[2];
             $query->resource_id   = (isset($resource_components[3])) ? trim($resource_components[3], '/') : NULL;
@@ -133,7 +133,7 @@ class Steam_Data
     {
         try
         {
-            include_once Steam::$base_dir . 'apps/' . $query->app_name . '/resources/dynamic/global.php';
+            include_once Steam::path('apps/' . $query->app_name . '/resources/dynamic/global.php');
         }
         catch (Steam_Exception_FileNotFound $exception)
         {
@@ -150,7 +150,7 @@ class Steam_Data
         try
         {
             // include the script which contains the data manipulation code
-            include Steam::$base_dir . 'apps/' . $query->app_name . '/resources/dynamic/' . $query->resource_name . '/' . $query->method . '.php';
+            include Steam::path('apps/' . $query->app_name . '/resources/dynamic/' . $query->resource_name . '/' . $query->method . '.php');
         }
         // if there are access requirements which were not fulfilled
         // it's the manipulation script's responsibility to throw this

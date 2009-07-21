@@ -1,8 +1,8 @@
 <?php
 /**
- * Steam Initializer
+ * Steam Fatal Exception
  *
- * This script initializes the Steam environment.
+ * This exception is thrown when execution can no longer continue.
  *
  * Copyright 2008-2009 Shaddy Zeineddine
  *
@@ -28,26 +28,14 @@
  * @link http://code.google.com/p/steam-fw
  */
 
-// first thing's first, begin output buffering
-ob_start();
+require_once 'Steam/Exception.php';
 
-// identify the directory where Steam resides
-$base_dir = str_replace('initializer.php', '', __FILE__);
-
-// include the Steam class
-require_once $base_dir . 'libraries/Steam.php';
-
-// set the base_dir var in the Steam class and unset the temporary var
-Steam::base_dir($base_dir);
-unset($base_dir);
-
-// initialize the Steam class, this loads the config
-Steam::initialize();
-
-// include useful functions to augment PHP's built-in functions
-require_once Steam::path('functions.php');
-
-// fire the ready event
-Steam_Event::trigger('ready');
+class Steam_Exception_Fatal extends Steam_Exception
+{
+    protected function setMessage(&$message)
+    {
+        $message = gettext('A fatal exception has occurred.');
+    }
+}
 
 ?>

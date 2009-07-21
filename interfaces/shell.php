@@ -29,6 +29,6 @@
  */
 
 // identify the current interface
-Steam::$interface = 'shell';
+Steam::app_interface('shell');
 
 ?>

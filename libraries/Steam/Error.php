@@ -76,27 +76,34 @@ class Steam_Error
         // currently only works if the error strings are in english
         $map = array(
             'failed to open stream: No such file or directory' => 'FileNotFound',
+            'Undefined variable: ' => 'Fatal',
             );
+        
+        $exception_class = 'Steam_Exception_PHP';
         
         foreach ($map as $error_message => $exception_type)
         {
             if (is_numeric(strpos($message, $error_message)))
             {
-                $exception_type = 'Steam_Exception_' . $exception_type;
+                $exception_class = 'Steam_Exception_' . $exception_type;
                 
-                $exception = new $exception_type($message, $level, $file, $line);
+                break;
             }
         }
         
-        if (!isset($exception))
-        {
-            // if there wasn't a matching exception, throw the general PHP exception
-            $exception = new Steam_Exception_PHP($message, $level, $file, $line);
-        }
+        $exception = new $exception_class($message, $level, $file, $line);
         
         self::log_exception($exception);
         
-        throw $exception;
+        // certain errors cannot be handled properly when thrown
+        if ($exception_class == 'Steam_Exception_Fatal')
+        {
+            self::exception_handler($exception);
+        }
+        else
+        {
+            throw $exception;
+        }
     }
     
     /**
@@ -122,7 +129,7 @@ class Steam_Error
     {
             $message = $exception->getMessage() . ' on line ' . $exception->getLine() . ' of ' . $exception->getFile();
             
-            Steam_Logger::log(Steam::$app_name . ': ' . $message, Zend_Log::ERR);
+            Steam_Logger::log(Steam_Application::name() . ': ' . $message, Zend_Log::ERR);
             
             return $message;
     }

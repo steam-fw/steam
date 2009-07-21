@@ -32,6 +32,6 @@
 require_once 'initializer.php';
 
 // load the web interface script
-require_once Steam::$base_dir . 'interfaces/web.php';
+include_once Steam::path('interfaces/web.php');
 
 ?>

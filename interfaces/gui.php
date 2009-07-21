@@ -1,8 +1,8 @@
 <?php
 /**
- * Steam Initializer
+ * Steam GUI
  *
- * This script initializes the Steam environment.
+ * This script provides a GUI interface to Steam.
  *
  * Copyright 2008-2009 Shaddy Zeineddine
  *
@@ -28,26 +28,7 @@
  * @link http://code.google.com/p/steam-fw
  */
 
-// first thing's first, begin output buffering
-ob_start();
-
-// identify the directory where Steam resides
-$base_dir = str_replace('initializer.php', '', __FILE__);
-
-// include the Steam class
-require_once $base_dir . 'libraries/Steam.php';
-
-// set the base_dir var in the Steam class and unset the temporary var
-Steam::base_dir($base_dir);
-unset($base_dir);
-
-// initialize the Steam class, this loads the config
-Steam::initialize();
-
-// include useful functions to augment PHP's built-in functions
-require_once Steam::path('functions.php');
-
-// fire the ready event
-Steam_Event::trigger('ready');
+// identify the current interface
+Steam::app_interface('gui');
 
 ?>

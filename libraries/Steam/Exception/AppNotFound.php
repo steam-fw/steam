@@ -1,8 +1,8 @@
 <?php
 /**
- * Steam API
+ * Steam Application Not Found Exception
  *
- * This script provides Steam services to external applications.
+ * This exception is thrown when an application cannot be found.
  *
  * Copyright 2008-2009 Shaddy Zeineddine
  *
@@ -28,7 +28,14 @@
  * @link http://code.google.com/p/steam-fw
  */
 
-// identify the current interface
-Steam::$interface = 'api';
+require_once 'Steam/Exception.php';
+
+class Steam_Exception_AppNotFound extends Steam_Exception
+{
+    protected function setMessage(&$message)
+    {
+        $message = gettext('The application could not be found.');
+    }
+}
 
 ?>

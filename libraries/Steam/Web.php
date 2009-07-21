@@ -30,41 +30,86 @@
 
 class Steam_Web
 {
+    /**
+     * The Steam base URI, the URI of the directory that contains index.php
+     */
+    protected static $base_uri;
     protected static $headers_sent = false;
     protected static $headers      = array();
     protected static $body         = '';
-    protected static $uri;
+    
+    /**
+     * The current portal through which Steam is being accessed.
+     */
+    protected static $portal;
+    
+    
+    /**
+     * Sets or retrieves the base URI. The base URI can only be set once. An
+     * exception is thrown if an attempt is made to change it.
+     *
+     * @throws Steam_Exception_General
+     * @return void|string base URI
+     * @param string base URI
+     */
+    public static function base_uri($base_uri = NULL)
+    {
+        if (!is_null($base_uri))
+        {
+            if (!is_null(self::$base_uri))
+            {
+                throw new Steam_Exception_General();
+            }
+            else
+            {
+                self::$base_uri = $base_uri;
+            }
+        }
+        
+        return self::$base_uri;
+    }
+    
+    /**
+     * Converts a URI relative to the base URI into an absolute URI.
+     *
+     * @return string absolute uri
+     * @param string relative uri
+     */
+    public static function uri($path = '')
+    {
+        return self::$base_uri . '/' . ltrim($path, '/');
+    }
     
     /**
      * Loads a resource based on the given resource code. Resource code
-     * defaults to "default". If the URI targets the API, the request is
-     * processed.
+     * defaults to "default". If the portal targets the API, the request is
+     * processed through the api.
      *
      * @return void
-     * @param object $uri Steam_Web_URI object
+     * @param object $portal Steam_Web_Portal object
      */
-    public static function load(Steam_Web_URI $uri)
+    public static function load(Steam_Web_Portal $portal)
     {
-        // store the loaded uri
-        self::$uri = $uri;
+        // store the loaded portal
+        self::$portal = $portal;
         
         // set the app environment variables
-        Steam::$app_id   = $uri->app_id();
-        Steam::$app_name = $uri->app_name();
-        Steam::$app_uri  = $uri->app_uri();
+        Steam_Application::load($portal->app_name());
+        Steam_Application::id($portal->app_id());
+        Steam_Application::base_uri($portal->app_uri());
         
         // if the portal is for api requests, process the request and return response
-        if ($uri->api())
+        if ($portal->api())
         {
-            return self::process_api_request($uri);
+            return self::process_api_request($portal);
         }
         
-        $page_name = $uri->resource_name();
+        $page_name = $portal->resource_name();
         
         try
         {
             // try to load the global page if it exists
-            include Steam::$base_dir . 'apps/' . $uri->app_name() . '/pages/global.php';
+            include Steam::path('apps/' . Steam_Application::name() . '/pages/global.php');
         }
         catch (Steam_Exception_FileNotFound $exception)
         {
@@ -78,14 +123,14 @@ class Steam_Web
             self::header('HTTP/1.1 500 ' . Zend_Http_Response::responseCodeAsText(500));
             
             // if the global resource raised an exception, display an error page
-            include Steam::$base_dir . 'apps/global/error_pages/HTTP_500.php';
+            include Steam::path('apps/global/error_pages/HTTP_500.php');
             return;
         }
         
         try
         {
             // try to load the requested page
-            include Steam::$base_dir . 'apps/' . $uri->app_name() . '/pages/' . $page_name . '.php';
+            include Steam::path('apps/' . Steam_Application::name() . '/pages/' . $page_name . '.php');
             return;
         }
         catch (Steam_Exception_FileNotFound $exception)
@@ -94,7 +139,7 @@ class Steam_Web
             self::header('HTTP/1.1 404 ' . Zend_Http_Response::responseCodeAsText(404));
             
             // if it's not found, display the 404 error page
-            include Steam::$base_dir . 'apps/global/error_pages/HTTP_404.php';
+            include Steam::path('apps/global/error_pages/HTTP_404.php');
             return;
         }
         catch (Exception $exception)
@@ -105,7 +150,7 @@ class Steam_Web
             self::header('HTTP/1.1 500 ' . Zend_Http_Response::responseCodeAsText(500));
             
             // if it raised an exception, show the 500 error page
-            include Steam::$base_dir . 'apps/global/error_pages/HTTP_500.php';
+            include Steam::path('apps/global/error_pages/HTTP_500.php');
             return;
         }
     }
@@ -117,7 +162,7 @@ class Steam_Web
      * @return void
      * @param object Steam_Web_URI
      */
-    protected static function process_api_request(Steam_Web_URI $uri)
+    protected static function process_api_request(Steam_Web_Portal $portal)
     {
         // perform any special tasks for the type of method
         switch ($_SERVER['REQUEST_METHOD'])
@@ -150,7 +195,7 @@ class Steam_Web
         }
         
         // perform the actual request
-        $response = Steam_Data::request($method, $uri->resource_name(), $query);
+        $response = Steam_Data::request($method, $portal->resource_name(), $query);
         
         // output the status of the response
         self::header('HTTP/1.1 ' . $response->status . ' ' . Zend_Http_Response::responseCodeAsText(intval($response->status)));
@@ -176,11 +221,24 @@ class Steam_Web
         self::send_response();
     }
     
-    public static function uri()
+    /**
+     * Retrieves the current portal object.
+     *
+     * @return object Steam_Web_Portal object
+     */
+    public static function portal()
     {
-        return self::$uri;
+        return self::$portal;
     }
     
+    /**
+     * Adds a header to the queue of headers to be sent. Headers are sent when
+     * when send_headers or send_response is called.
+     *
+     * @return void
+     * @param $header string header name
+     * @param $value  string header value
+     */
     public static function header($header, $value = NULL)
     {
         if (is_null($value))
@@ -193,6 +251,11 @@ class Steam_Web
         }
     }
     
+    /**
+     * Sends the queued headers to the client.
+     *
+     * @return void
+     */
     public static function send_headers()
     {
         foreach (self::$headers as $header)
@@ -203,22 +266,25 @@ class Steam_Web
         self::$headers_sent = true;
     }
     
+    /**
+     * Sets the body of the response. The body is sent when send_response is
+     * called.
+     *
+     * @return void
+     * @param $body string response body
+     */
     public static function body($body)
     {
         self::$body = $body;
         self::header('Content-Length', strlen($body));
     }
     
-    public static function send_body($body)
-    {
-        if (!self::$headers_sent)
-        {
-            self::send_headers();
-        }
-        
-        echo $body;
-    }
     
+    /**
+     * Sends the body and headers to the client.
+     *
+     * @return void
+     */
     public static function send_response()
     {
         if (!self::$headers_sent)
@@ -296,11 +362,21 @@ class Steam_Web
         if ($set_referrer)
         {
             $session = new Zend_Session_Namespace('ridazz');
-            $session->referrer = self::$uri->resource_name();
+            $session->referrer = self::$portal->resource_name();
         }
         
+        $page = (string) $page;
         Steam_Web::header('HTTP/1.1 303 See Other');
-        Steam_Web::header('Location', Steam::$app_uri . '/' . $page);
+        
+        if ($page[0] == '/' or substr($page, 0, 7) == 'http://')
+        {
+            Steam_Web::header('Location', $page);
+        }
+        else
+        {
+            Steam_Web::header('Location', Steam_Application::uri($page));
+        }
+        
         Steam_Web::send_response();
         exit;
     }

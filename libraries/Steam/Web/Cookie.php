@@ -1,8 +1,8 @@
 <?php
 /**
- * Steam Initializer
+ * Steam Cookie Class
  *
- * This script initializes the Steam environment.
+ * This class contains utilities for interacting with URIs.
  *
  * Copyright 2008-2009 Shaddy Zeineddine
  *
@@ -28,26 +28,29 @@
  * @link http://code.google.com/p/steam-fw
  */
 
-// first thing's first, begin output buffering
-ob_start();
-
-// identify the directory where Steam resides
-$base_dir = str_replace('initializer.php', '', __FILE__);
-
-// include the Steam class
-require_once $base_dir . 'libraries/Steam.php';
-
-// set the base_dir var in the Steam class and unset the temporary var
-Steam::base_dir($base_dir);
-unset($base_dir);
-
-// initialize the Steam class, this loads the config
-Steam::initialize();
-
-// include useful functions to augment PHP's built-in functions
-require_once Steam::path('functions.php');
-
-// fire the ready event
-Steam_Event::trigger('ready');
+class Steam_Web_Cookie
+{
+    public static function set($name, $value, $days)
+    {
+        setcookie($name, $value, time() + ($days * 86400), '/');
+    }
+    
+    public static function get($name)
+    {
+        if (isset($_COOKIE[$name]))
+        {
+            return $_COOKIE[$name];
+        }
+        else
+        {
+            return NULL;
+        }
+    }
+    
+    public static function delete($name)
+    {
+        setcookie($name, NULL, time() - 3600, '/');
+    }
+}
 
 ?>

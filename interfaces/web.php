@@ -29,9 +29,9 @@
  */
 
 // identify the current interface
-Steam::$interface = 'web';
+Steam::app_interface('web');
 
-switch (Steam::$environment)
+switch (Steam::environment())
 {
     case 'development':
         $response = new Zend_Controller_Response_Http();
@@ -49,9 +49,9 @@ switch (Steam::$environment)
 Zend_Session::setSaveHandler(new Steam_Web_Session);
 
 // load the requested page
-Steam_Web::load(new Steam_Web_URI());
+Steam_Web::load(new Steam_Web_Portal());
 
-if (Steam::$environment == 'development')
+if (Steam::environment() == 'development')
 {
     $channel->flush();
     $response->sendHeaders();

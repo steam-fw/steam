@@ -33,37 +33,17 @@ class Steam
     /**
      * The current environment which controls debugging output
      */
-    public static $environment;
-    
-    /**
-     * The Steam base URI, the URI of the directory that contains index.php
-     */
-    public static $base_uri;
+    protected static $environment;
     
     /**
      * The filesystem directory that contains the config and index.php
      */
-    public static $base_dir;
+    protected static $base_dir;
     
     /**
-     * The current interface identifier
+     * The current application interface identifier
      */
-    public static $interface;
-    
-    /**
-     * The current application identifier
-     */
-    public static $app_id = 0;
-    
-    /**
-     * The current application name, the name of its directory
-     */
-    public static $app_name = 'global';
-    
-    /**
-     * The current application URI which includes the base uri
-     */
-    public static $app_uri;
+    protected static $app_interface;
     
     /**
      * Initializes the Steam environment by reading the configuration files and
@@ -79,17 +59,17 @@ class Steam
         // load the configuration file
         require_once self::$base_dir . 'config.php';
         
-        // include the Zend Loader class
-        require_once "Zend/Loader/Autoloader.php";
+        // include the Loader classes
+        require_once "Steam/Loader.php";
         
         // add the Steam library to the autoloader
         $libraries[] = 'Steam_';
         
-        // activate the autoloader
-        Zend_Loader_Autoloader::getInstance()->registerNamespace($libraries);
+        // activate the autoloader and register the custom autoloader
+        Steam_Loader::initialize($libraries);
         
         // store certain configuration variables
-        self::$base_uri    = $base_uri;
+        Steam_Web::base_uri($base_uri);
         self::$environment = $environment;
         
         // initialize caching with the configured backend and parameters
@@ -106,6 +86,55 @@ class Steam
         
         // initialize the database with the configured adapter and parameters
         Steam_Db::initialize($db_adapter, $db_params);
+        
+        // load the global application
+        Steam_Application::load('global');
+    }
+    
+    /**
+     * Sets or retrieves the base directory. The base directory can only be set
+     * once. An exception is thrown if an attempt is made to change it.
+     *
+     * @throws Steam_Exception_General
+     * @return void|string base directory
+     * @param string base directory
+     */
+    public static function base_dir($base_dir = NULL)
+    {
+        if (!is_null($base_dir))
+        {
+            if (!is_null(self::$base_dir))
+            {
+                throw new Steam_Exception_General();
+            }
+            else
+            {
+                self::$base_dir = $base_dir;
+            }
+        }
+        
+        return self::$base_dir;
+    }
+    
+    /**
+     * Converts a path relative to the base directory into an absolute path.
+     *
+     * @return string absolute path
+     * @param string relative path
+     */
+    public static function path($path = '')
+    {
+        return self::$base_dir . ltrim($path, '/');
+    }
+    
+    public static function app_interface()
+    {
+        return self::$app_interface;
+    }
+    
+    public static function environment()
+    {
+        return self::$environment;
     }
 }
 

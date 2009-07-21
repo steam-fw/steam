@@ -1,8 +1,8 @@
 <?php
 /**
- * Steam URI Class
+ * Steam Portal Class
  *
- * This class contains utilities for interacting with URIs.
+ * This class contains utilities for interacting with portals.
  *
  * Copyright 2008-2009 Shaddy Zeineddine
  *
@@ -28,7 +28,7 @@
  * @link http://code.google.com/p/steam-fw
  */
 
-class Steam_Web_URI
+class Steam_Web_Portal
 {
     protected $uri;
     protected $scheme;
@@ -42,7 +42,7 @@ class Steam_Web_URI
     protected $api;
     
     /**
-     * Returns a string representation of the URI.
+     * Returns a string representation of the portal URI.
      *
      * @return string
      */
@@ -52,7 +52,7 @@ class Steam_Web_URI
     }
     
     /**
-     * Creates a new Steam_Web_URI object from a URI. If a URI is not specified,
+     * Creates a new Steam_Web_Portal object from a URI. If a URI is not specified,
      * it will be taken from the current request.
      *
      * @return object
@@ -99,8 +99,6 @@ class Steam_Web_URI
         try
         {
             $portal_data = Steam_Cache::get('/global/portal', $this->domain . $this->path);
-            
-            $this->resource_name = $portal_data['resource_name'];
         }
         catch (Steam_Exception_Cache $exception)
         {
@@ -108,25 +106,24 @@ class Steam_Web_URI
             $select = $db->select();
             $select->from('portals', array('app_id', 'domain', 'path', 'resource_name', 'api'))
                    ->join('apps', 'apps.app_id = portals.app_id', array('app_name', 'app_uri'))
-                   ->where($db->quote($this->domain) . ' LIKE domain AND ' . $db->quote($this->path) . ' LIKE CONCAT(' . $db->quote(Steam::$base_uri) . ', path)')
+                   ->where($db->quote($this->domain) . ' LIKE domain AND ' . $db->quote($this->path) . ' LIKE CONCAT(' . $db->quote(Steam_Web::base_uri()) . ', path)')
                    ->order('portal_sequence ASC');
             $portal_data = $select->query()->fetch();
-            
-            $this->resource_name = $portal_data['resource_name'];
             
             Steam_Cache::set('/global/portal', $this->domain . $this->path, $portal_data);
         }
         
+        $this->resource_name = $portal_data['resource_name'];
         $this->app_id        = $portal_data['app_id'];
         $this->app_name      = $portal_data['app_name'];
-        $this->app_uri       = Steam::$base_uri . $portal_data['app_uri']; //this should be the default app uri, rather than the portal ???
-        $this->portal_uri    = rtrim(preg_replace('/%.*$/', '', Steam::$base_uri . $portal_data['path']), '/');
-        $this->app_full_uri  = $this->scheme . $portal_data['domain'] . preg_replace('/%.*$/', '', Steam::$base_uri . $portal_data['path']);
+        $this->app_uri       = Steam_Web::uri($portal_data['app_uri']); //this should be the default app uri, rather than the portal ???
+        $this->portal_uri    = rtrim(preg_replace('/%.*$/', '', Steam_Web::uri($portal_data['path'])), '/');
+        $this->app_full_uri  = $this->scheme . $portal_data['domain'] . preg_replace('/%.*$/', '', Steam_Web::uri($portal_data['path']));
         $this->api           = ($portal_data['api'] == 1) ? true : false;
         
         if ($this->resource_name == '')
         {
-            $this->resource_name = trim(preg_replace('/^' . preg_quote(Steam::$base_uri . trim($portal_data['path'], '%'), '/') . '/i', '', $this->path), '/');
+            $this->resource_name = trim(preg_replace('/^' . preg_quote(Steam_Web::uri(trim($portal_data['path'], '%')), '/') . '/i', '', $this->path), '/');
             
             // if there was no resource name specified, use default
             if ($this->resource_name == '')
