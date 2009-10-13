@@ -36,6 +36,10 @@ $base_uri         = '/steam';
 $libraries        = array(
     );
 
+$cache_backend    = 'File';
+$cache_params     = array('cache_dir' => 'cache/');
+
+/* Memcached
 $cache_backend    = 'Memcached';
 $cache_params     = array(
     'servers' => array(
@@ -45,6 +49,7 @@ $cache_params     = array(
             ),
         ),
     );
+*/
 
 $db_adapter       = 'Mysqli';
 $db_params        = array(
