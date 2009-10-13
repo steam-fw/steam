@@ -153,7 +153,7 @@ class Steam_Application
      */
     public static function uri($path = '')
     {
-        return self::$app_base_uri . '/' . ltrim($path, '/');
+        return rtrim(self::$app_base_uri, '/') . '/' . ltrim($path, '/');
     }
     
     /**
