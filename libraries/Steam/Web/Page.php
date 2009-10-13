@@ -120,7 +120,7 @@ class Steam_Web_Page
         
         $uris = array(
             'BASE' => Steam_Web::base_uri(),
-            'APP'  => Steam_Application::base_uri(),
+            'APP'  => rtrim(Steam_Application::base_uri(), '/'),
             );
         
         foreach ($uris as $name => $value)

@@ -163,7 +163,7 @@ class Steam_Data
         catch (Steam_Exception_FileNotFound $exception)
         {
             // if the resource exists, then the method isn't implemented
-            if (file_exists(Steam::$base_dir . 'apps/' . $query->app_name . '/resources/dynamic/' . $query->resource_name))
+            if (file_exists(Steam_Application::path('resources/dynamic/' . $query->resource_name)))
             {
                 $response->status = 405;
             }

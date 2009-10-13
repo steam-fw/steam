@@ -118,7 +118,7 @@ class Steam_Web_Portal
         $this->app_name      = $portal_data['app_name'];
         $this->app_uri       = Steam_Web::uri($portal_data['app_uri']); //this should be the default app uri, rather than the portal ???
         $this->portal_uri    = rtrim(preg_replace('/%.*$/', '', Steam_Web::uri($portal_data['path'])), '/');
-        $this->app_full_uri  = $this->scheme . $portal_data['domain'] . preg_replace('/%.*$/', '', Steam_Web::uri($portal_data['path']));
+        $this->app_full_uri  = $this->scheme . $this->domain . preg_replace('/%.*$/', '', Steam_Web::uri($portal_data['path']));
         $this->api           = ($portal_data['api'] == 1) ? true : false;
         
         if ($this->resource_name == '')
