@@ -35,6 +35,10 @@ class Steam_Db
      */
     protected static $servers;
     
+    protected static $read = 'read';
+    
+    protected static $search = 'search';
+    
     
     /**
      * Initializes the database by setting the adapter and randomly selecting
@@ -79,7 +83,7 @@ class Steam_Db
      */
     public static function read()
     {
-        return self::$servers['read'];
+        return self::$servers[self::$read];
     }
     
     /**
@@ -89,7 +93,19 @@ class Steam_Db
      */
     public static function search()
     {
-        return self::$servers['search'];
+        return self::$servers[self::$search];
+    }
+    
+    public static function lock()
+    {
+        self::$read   = 'write';
+        self::$search = 'write';
+    }
+    
+    public static function unlock()
+    {
+        self::$read   = 'read';
+        self::$search = 'search';
     }
 }
 
