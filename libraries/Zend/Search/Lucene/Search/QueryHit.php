@@ -15,9 +15,9 @@
  * @category   Zend
  * @package    Zend_Search_Lucene
  * @subpackage Search
- * @copyright  Copyright (c) 2005-2009 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2010 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
- * @version    $Id: QueryHit.php 16541 2009-07-07 06:59:03Z bkarwin $
+ * @version    $Id: QueryHit.php 20096 2010-01-06 02:05:09Z bkarwin $
  */
 
 
@@ -25,7 +25,7 @@
  * @category   Zend
  * @package    Zend_Search_Lucene
  * @subpackage Search
- * @copyright  Copyright (c) 2005-2009 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2010 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class Zend_Search_Lucene_Search_QueryHit
@@ -64,6 +64,7 @@ class Zend_Search_Lucene_Search_QueryHit
 
     public function __construct(Zend_Search_Lucene_Interface $index)
     {
+        require_once 'Zend/Search/Lucene/Proxy.php';
         $this->_index = new Zend_Search_Lucene_Proxy($index);
     }
 

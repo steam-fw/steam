@@ -13,13 +13,16 @@
  * to license@zend.com so we can send you a copy immediately.
  *
  * @category   Zend
- * @package    Test
+ * @package    Zend_Test
  * @subpackage PHPUnit
- * @copyright  Copyright (c) 2005-2009 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2010 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
- * @version    $Id: DbStatement.php 16911 2009-07-21 11:54:03Z matthew $
+ * @version    $Id: DbStatement.php 20096 2010-01-06 02:05:09Z bkarwin $
  */
 
+/**
+ * @see Zend_Db_Statement_Interface
+ */
 require_once "Zend/Db/Statement/Interface.php";
 
 /**
@@ -28,7 +31,7 @@ require_once "Zend/Db/Statement/Interface.php";
  * @category   Zend
  * @package    Zend_Test
  * @subpackage PHPUnit
- * @copyright  Copyright (c) 2005-2009 Zend Technologies USA Inc. (http://www.zend.com)
+ * @copyright  Copyright (c) 2005-2010 Zend Technologies USA Inc. (http://www.zend.com)
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  */
 class Zend_Test_DbStatement implements Zend_Db_Statement_Interface
@@ -49,8 +52,13 @@ class Zend_Test_DbStatement implements Zend_Db_Statement_Interface
     protected $_rowCount = 0;
 
     /**
+     * @var Zend_Db_Profiler_Query
+     */
+    protected $_queryProfile = null;
+
+    /**
      * Create a Select statement which returns the given array of rows.
-     * 
+     *
      * @param array $rows
      * @return Zend_Test_DbStatement
      */
@@ -65,7 +73,7 @@ class Zend_Test_DbStatement implements Zend_Db_Statement_Interface
 
     /**
      * Create an Insert Statement
-     * 
+     *
      * @param  int $affectedRows
      * @return Zend_Test_DbStatement
      */
@@ -107,6 +115,14 @@ class Zend_Test_DbStatement implements Zend_Db_Statement_Interface
         $stmt = new Zend_Test_DbStatement();
         $stmt->setRowCount($affectedRows);
         return $stmt;
+    }
+
+    /**
+     * @param Zend_Db_Profiler_Query $qp
+     */
+    public function setQueryProfile(Zend_Db_Profiler_Query $qp)
+    {
+        $this->_queryProfile = $qp;
     }
 
     /**
@@ -156,6 +172,9 @@ class Zend_Test_DbStatement implements Zend_Db_Statement_Interface
      */
     public function bindParam($parameter, &$variable, $type = null, $length = null, $options = null)
     {
+        if($this->_queryProfile !== null) {
+            $this->_queryProfile->bindParam($parameter, $variable);
+        }
         return true;
     }
 
@@ -229,6 +248,10 @@ class Zend_Test_DbStatement implements Zend_Db_Statement_Interface
      */
     public function execute(array $params = array())
     {
+        if($this->_queryProfile !== null) {
+            $this->_queryProfile->bindParams($params);
+            $this->_queryProfile->end();
+        }
         return true;
     }
 
