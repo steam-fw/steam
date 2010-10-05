@@ -5,7 +5,7 @@
  * This class is the basis for plugins which extend or enhance default
  * functionality.
  *
- * Copyright 2008-2009 Shaddy Zeineddine
+ * Copyright 2008-2010 Shaddy Zeineddine
  *
  * This file is part of Steam, a PHP application framework.
  *
@@ -24,13 +24,18 @@
  *
  * @category Frameworks
  * @package Steam
- * @copyright 2008-2009 Shaddy Zeineddine
+ * @copyright 2008-2010 Shaddy Zeineddine
  * @license http://www.gnu.org/licenses/gpl.txt GPL v3 or later
  * @link http://code.google.com/p/steam-fw
  */
 
-class Steam_Plugin
+namespace Steam;
+
+class Plugin
 {
+    public static function initialize()
+    {
+    }
 }
 
 ?>

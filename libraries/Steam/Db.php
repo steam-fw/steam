@@ -4,7 +4,7 @@
  *
  * This class manages database connections and load balancing.
  *
- * Copyright 2008-2009 Shaddy Zeineddine
+ * Copyright 2008-2010 Shaddy Zeineddine
  *
  * This file is part of Steam, a PHP application framework.
  *
@@ -23,12 +23,14 @@
  *
  * @category Frameworks
  * @package Steam
- * @copyright 2008-2009 Shaddy Zeineddine
+ * @copyright 2008-2010 Shaddy Zeineddine
  * @license http://www.gnu.org/licenses/gpl.txt GPL v3 or later
  * @link http://code.google.com/p/steam-fw
  */
 
-class Steam_Db
+namespace Steam;
+
+class Db
 {
     /**
      * An array of Zend_Db objects
@@ -51,19 +53,23 @@ class Steam_Db
      * @param string $adapter Zend_Db adapter
      * @param array $parameters server parameters
      */
-    public static function initialize($adapter, $parameters)
+    public static function initialize($adapter = NULL, $parameters = NULL)
     {
         if (!isset($parameters['write'][0]))
         {
-                throw new Steam_Exception_Database(gettext('A write database server has not been defined, but is required.'));
+                throw new \Steam\Exception\Database(gettext('A write database server has not been defined, but is required.'));
         }
         
         foreach (array('write', 'read', 'search') as $type)
         {
             $use_type = (count($parameters[$type])) ? $type : 'write';
             
-            self::$servers[$type] = Zend_Db::factory($adapter, $parameters[$use_type][array_rand($parameters[$use_type])]);
+            self::$servers[$type] = \Zend_Db::factory($adapter, $parameters[$use_type][array_rand($parameters[$use_type])]);
         }
+    }
+    
+    public static function shutdown()
+    {
     }
     
     /**

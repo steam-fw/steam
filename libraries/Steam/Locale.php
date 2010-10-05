@@ -4,7 +4,7 @@
  *
  * This class configures localization settings and translation of Steam text.
  *
- * Copyright 2008-2009 Shaddy Zeineddine
+ * Copyright 2008-2010 Shaddy Zeineddine
  *
  * This file is part of Steam, a PHP application framework.
  *
@@ -23,12 +23,14 @@
  *
  * @category Frameworks
  * @package Steam
- * @copyright 2008-2009 Shaddy Zeineddine
+ * @copyright 2008-2010 Shaddy Zeineddine
  * @license http://www.gnu.org/licenses/gpl.txt GPL v3 or later
  * @link http://code.google.com/p/steam-fw
  */
 
-class Steam_Locale
+namespace Steam;
+
+class Locale
 {
     /**
      * Instance of Zend_Translate used for translating Steam strings.
@@ -47,17 +49,28 @@ class Steam_Locale
     {
         // set the default locale and timezone
         date_default_timezone_set($timezone);
-        Zend_Locale::setDefault($locale);
+        \Zend_Locale::setDefault($locale);
         
         // configure Zend_Locale and Zend_Translate to use the cache
-        Zend_Locale::setCache(Steam_Cache::get_cache());
-        Zend_Translate::setCache(Steam_Cache::get_cache());
+        \Zend_Locale::setCache(\Steam\Cache::get_cache());
+        \Zend_Translate::setCache(\Steam\Cache::get_cache());
         
         // store Zend_Locale in the registry after 
-        Zend_Registry::set('Zend_Locale', new Zend_Locale($locale));
+        \Zend_Registry::set('\Zend_Locale', new \Zend_Locale($locale));
         
         // create an instance of Zend_Translate for translating core Steam text
-        self::$translator = new Zend_Translate('gettext', Steam::path('apps/global/translations'), NULL, array('scan' => Zend_Translate::LOCALE_DIRECTORY));
+        self::$translator = new \Zend_Translate('gettext', \Steam::path('apps/global/translations'), NULL, array('scan' => \Zend_Translate::LOCALE_DIRECTORY));
+    }
+    
+    /**
+     * Sets a new global timezone.
+     *
+     * @return void
+     * @param string $timezone timezone identifier
+     */
+    public static function set_timezone($timezone)
+    {
+        date_default_timezone_set($timezone);
     }
     
     /**
@@ -66,9 +79,9 @@ class Steam_Locale
      * @return void
      * @param string $locale locale identifier
      */
-    public static function set($locale)
+    public static function set_locale($locale)
     {
-        Zend_Registry::get('Zend_Locale')->setLocale($locale);
+        \Zend_Registry::get('\Zend_Locale')->setLocale($locale);
     }
     
     /**

@@ -4,7 +4,7 @@
  *
  * This class handles application events and bindings to those events.
  *
- * Copyright 2008-2009 Shaddy Zeineddine
+ * Copyright 2008-2010 Shaddy Zeineddine
  *
  * This file is part of Steam, a PHP application framework.
  *
@@ -23,13 +23,17 @@
  *
  * @category Frameworks
  * @package Steam
- * @copyright 2008-2009 Shaddy Zeineddine
+ * @copyright 2008-2010 Shaddy Zeineddine
  * @license http://www.gnu.org/licenses/gpl.txt GPL v3 or later
  * @link http://code.google.com/p/steam-fw
  */
 
-class Steam_Event
+namespace Steam;
+
+class Event
 {
+    private static $hooks = array();
+    
     /**
      * Fires the specified event.
      *
@@ -38,6 +42,20 @@ class Steam_Event
      */
     public static function trigger($event)
     {
+        if (!isset(self::$hooks[$event]))
+        {
+            return;
+        }
+        
+        foreach (self::$hooks[$event] as $hook)
+        {
+            call_user_func_array($hook[0], $hook[1]);
+        }
+    }
+    
+    public static function hook($event, $function, $parameters = array())
+    {
+        self::$hooks[$event][] = array($function, $parameters);
     }
 }
 

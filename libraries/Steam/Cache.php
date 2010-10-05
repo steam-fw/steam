@@ -4,7 +4,7 @@
  *
  * This class provides a front end interface to Zend_Cache.
  *
- * Copyright 2008-2009 Shaddy Zeineddine
+ * Copyright 2008-2010 Shaddy Zeineddine
  *
  * This file is part of Steam, a PHP application framework.
  *
@@ -23,12 +23,14 @@
  *
  * @category Frameworks
  * @package Steam
- * @copyright 2008-2009 Shaddy Zeineddine
+ * @copyright 2008-2010 Shaddy Zeineddine
  * @license http://www.gnu.org/licenses/gpl.txt GPL v3 or later
  * @link http://code.google.com/p/steam-fw
  */
 
-class Steam_Cache
+namespace Steam;
+
+class Cache
 {
     /**
      * The Zend_Cache object.
@@ -43,17 +45,17 @@ class Steam_Cache
      * @param string $backend valid Zend_Cache backend
      * @param array $parameters Zend_Cache backend options
      */
-    public static function initialize($backend, array $parameters)
+    public static function initialize($backend, $params)
     {
-        self::$cache = Zend_Cache::factory('Core', $backend, array('automatic_serialization' => true), $parameters);
+        self::$cache = \Zend_Cache::factory('Core', $backend, array('automatic_serialization' => true), $params);
     }
     
     /**
      * Sets data in memcache using the context and identifier strings as the key.
      * If data already exists with the same context and identifier, the data is
-     * not overwritten. If storing fails, Steam_Exception_Cache is thrown.
+     * not overwritten. If storing fails, Steam\Exception\Cache is thrown.
      *
-     * @throws Steam_Exception_Cache
+     * @throws Steam\Exception\Cache
      * @return void
      * @param string $context data context
      * @param string $identifier context specific identifier
@@ -63,15 +65,15 @@ class Steam_Cache
     {
         if (!self::$cache->save($value, md5(self::format_context($context) . $identifier)))
         {
-            throw new Steam_Exception_Cache(gettext('There was a problem storing data in the cache.'));
+            throw new \Steam\Exception\Cache(gettext('There was a problem storing data in the cache.'));
         }
     }
     
     /**
      * Retrieves data from memcache identified by the context and identifier. If
-     * the data does not exist in the cache, Steam_Exception_Cache is thrown.
+     * the data does not exist in the cache, Steam\Exception\Cache is thrown.
      *
-     * @throws Steam_Exception_Cache
+     * @throws Steam\Exception\Cache
      * @return mixed cached value
      * @param string $context data context
      * @param string $identifier context specific identifier
@@ -80,7 +82,7 @@ class Steam_Cache
     {
         if (!$value = self::$cache->load(md5(self::format_context($context) . $identifier)))
         {
-            throw new Steam_Exception_Cache(gettext('The specified data does not exist within the cache.'));
+            throw new \Steam\Exception\Cache(gettext('The specified data does not exist within the cache.'));
         }
         
         return $value;
@@ -88,9 +90,9 @@ class Steam_Cache
     
     /**
      * Deletes data from memcache using the context and identifier strings as
-     * the key. If deletion fails, Steam_Exception_Cache is thrown.
+     * the key. If deletion fails, Steam\Exception\Cache is thrown.
      *
-     * @throws Steam_Exception_Cache
+     * @throws Steam\Exception\Cache
      * @return void
      * @param string $context data context
      * @param string $identifier context specific identifier
@@ -99,22 +101,22 @@ class Steam_Cache
     {
         if (!self::$cache->remove(md5(self::format_context($context) . $identifier)))
         {
-            throw new Steam_Exception_Cache(gettext('There was a problem deleting the stored data.'));
+            throw new \Steam\Exception\Cache(gettext('There was a problem deleting the stored data.'));
         }
     }
     
     /**
-     * Deletes all data from memcache. If flushing fails, Steam_Exception_Cache
+     * Deletes all data from memcache. If flushing fails, Steam\Exception\Cache
      * is thrown.
      *
-     * @throws Steam_Exception_Cache
+     * @throws Steam\Exception\Cache
      * @return void
      */
     public static function flush()
     {
         if (!self::$cache->clean())
         {
-            throw new Steam_Exception_Cache(gettext('There was a problem flushing all stored data.'));
+            throw new \Steam\Exception\Cache(gettext('There was a problem flushing all stored data.'));
         }
     }
     
@@ -139,7 +141,7 @@ class Steam_Cache
     {
         if ($context[0] != '/')
         {
-            $context = '/' . Steam_Application::name() . '/' . $context;
+            $context = '/' . \Steam\Application::name() . '/' . $context;
         }
         
         return $context;

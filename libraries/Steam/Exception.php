@@ -4,7 +4,7 @@
  *
  * All Steam exceptions extend this base class.
  *
- * Copyright 2008-2009 Shaddy Zeineddine
+ * Copyright 2008-2010 Shaddy Zeineddine
  *
  * This file is part of Steam, a PHP application framework.
  *
@@ -23,12 +23,14 @@
  *
  * @category Frameworks
  * @package Steam
- * @copyright 2008-2009 Shaddy Zeineddine
+ * @copyright 2008-2010 Shaddy Zeineddine
  * @license http://www.gnu.org/licenses/gpl.txt GPL v3 or later
  * @link http://code.google.com/p/steam-fw
  */
 
-abstract class Steam_Exception extends Exception
+namespace Steam;
+
+abstract class Exception extends \Exception
 {
     /**
      * Creates a new instance of Steam_Exception.

@@ -4,7 +4,7 @@
  *
  * This script defines some useful additions to PHP's built-in functions
  *
- * Copyright 2008-2009 Shaddy Zeineddine
+ * Copyright 2008-2010 Shaddy Zeineddine
  *
  * This file is part of Steam, a PHP application framework.
  *
@@ -23,7 +23,7 @@
  *
  * @category Frameworks
  * @package Steam
- * @copyright 2008-2009 Shaddy Zeineddine
+ * @copyright 2008-2010 Shaddy Zeineddine
  * @license http://www.gnu.org/licenses/gpl.txt GPL v3 or later
  * @link http://code.google.com/p/steam-fw
  */
@@ -87,5 +87,106 @@ function unlink_r($directory)
     }
 }
 
+function http_parse_query($query, $separator = NULL)
+{
+    if (empty($query))
+    {
+        return array();
+    }
+    
+    if (is_null($separator))
+    {
+        $separator = ini_get('arg_separator.output');
+    }
+    
+    $pairs = explode($separator, $query);
+    $array = array();
+    
+    foreach ($pairs as $pair)
+    {
+        $kv = explode('=', $pair);
+        
+        if (isset($kv[1]))
+        {
+            $array[$kv[0]] = urldecode($kv[1]);
+        }
+        else
+        {
+            $array[$kv[0]] = NULL;
+        }
+    }
+    
+    return $array;
+} 
+
+if (!function_exists('gettext'))
+{
+    function gettext($string)
+    {
+        return $string;
+    }
+}
+
+function ximplode($separator, $array)
+{
+    $array = current($array);
+    
+    if (!is_array($array))
+    {
+        return (string) $array;
+    }
+    
+    $first = true;
+    $string = '';
+    
+    foreach ($array as $item)
+    {
+        if ($first)
+        {
+            $string .= $item;
+            $first = false;
+        }
+        else
+        {
+            $string .= $separator . $item;
+        }
+    }
+    
+    return $string;
+}
+
+function xin_array($needle, $haystack)
+{
+    foreach ($haystack as $hay)
+    {
+        if ((string) $hay == (string) $needle)
+        {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+function xarray($xarray)
+{
+    $xarray = current($xarray);
+    
+    if (is_array($xarray))
+    {
+        $array = array();
+        
+        foreach ($xarray as $element)
+        {
+            $array[] = $element;
+        }
+        
+        return $array;
+    }
+    else
+    {
+        return array((string) $xarray);
+    }
+}
 
 ?>

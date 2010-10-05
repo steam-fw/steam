@@ -1,10 +1,10 @@
 <?php
 /**
- * Steam GUI
+ * PHP Log Writer
  *
- * This script provides a GUI interface to Steam.
+ * This class allows errors to be logged through PHP's default facility.
  *
- * Copyright 2008-2009 Shaddy Zeineddine
+ * Copyright 2008-2010 Shaddy Zeineddine
  *
  * This file is part of Steam, a PHP application framework.
  *
@@ -23,12 +23,19 @@
  *
  * @category Frameworks
  * @package Steam
- * @copyright 2008-2009 Shaddy Zeineddine
+ * @copyright 2008-2010 Shaddy Zeineddine
  * @license http://www.gnu.org/licenses/gpl.txt GPL v3 or later
  * @link http://code.google.com/p/steam-fw
  */
 
-// identify the current interface
-Steam::app_interface('gui');
+class Steam_Log_Writer_PHP extends Zend_Log_Writer_Abstract
+{
+    protected function _write($event)
+    {
+        if (false === @error_log($event['message']))
+        {
+            throw new Zend_Log_Exception("Unable to log using PHP's default logging facility.");
+        }
+    }
 
-?>
+}

@@ -1,10 +1,10 @@
 <?php
 /**
- * Steam Command Line Interface
+ * Steam Notification Service Class
  *
- * This script provides a command line interface to Steam.
+ * This class provides a simple session based notification service.
  *
- * Copyright 2008-2009 Shaddy Zeineddine
+ * Copyright 2008-2010 Shaddy Zeineddine
  *
  * This file is part of Steam, a PHP application framework.
  *
@@ -23,12 +23,36 @@
  *
  * @category Frameworks
  * @package Steam
- * @copyright 2008-2009 Shaddy Zeineddine
+ * @copyright 2008-2010 Shaddy Zeineddine
  * @license http://www.gnu.org/licenses/gpl.txt GPL v3 or later
  * @link http://code.google.com/p/steam-fw
  */
 
-// identify the current interface
-Steam::app_interface('shell');
+namespace Steam;
+
+class Notify
+{
+    protected static $session;
+    
+    public static function initialize($channel)
+    {
+        self::$session = new \Zend_Session_Namespace($channel);
+        
+        if (!isset(self::$session->steam_notify))
+        {
+            self::$session->steam_notify = array();
+        }
+    }
+    
+    public static function write($message, $type = NULL)
+    {
+        array_unshift(self::$session->steam_notify, array($message, $type));
+    }
+    
+    public static function read()
+    {
+        return array_pop(self::$session->steam_notify);
+    }
+}
 
 ?>

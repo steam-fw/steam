@@ -4,7 +4,7 @@
  *
  * This class provides an interface to Zend_Log.
  *
- * Copyright 2008-2009 Shaddy Zeineddine
+ * Copyright 2008-2010 Shaddy Zeineddine
  *
  * This file is part of Steam, a PHP application framework.
  *
@@ -23,17 +23,24 @@
  *
  * @category Frameworks
  * @package Steam
- * @copyright 2008-2009 Shaddy Zeineddine
+ * @copyright 2008-2010 Shaddy Zeineddine
  * @license http://www.gnu.org/licenses/gpl.txt GPL v3 or later
  * @link http://code.google.com/p/steam-fw
  */
 
-class Steam_Logger
+namespace Steam;
+
+class Logger
 {
     /**
      * An instance of Zend_Log.
      */
     protected static $logger;
+    
+    /**
+     * References to the built-in writers.
+     */
+    protected static $writers = array();
     
     /**
      * Creates an instance of Zend_Log with a default Null writer.
@@ -42,8 +49,29 @@ class Steam_Logger
      */
     public static function initialize()
     {
-        $writer = new Zend_Log_Writer_Null;
-        self::$logger = new Zend_Log($writer);
+        self::$logger = new \Zend_Log(new \Steam\Log\Writer\PHP());
+    }
+    
+    /**
+     * Enables one of the built-in logging facilities.
+     */
+    public static function enable($writer)
+    {
+        switch (strtolower($writer))
+        {
+            case 'firebug':
+                $channel = \Zend_Wildfire_Channel_HttpHeaders::getInstance();
+                $channel->setRequest(\Steam::$request);
+                $channel->setResponse(\Steam::$response);
+                self::$writers['firebug'] = new \Zend_Log_Writer_Firebug();
+                self::add_writer(self::$writers['firebug']);
+                \Steam\Event::hook('steam-response', array($channel, 'flush'));
+                break;
+            case 'syslog':
+                self::$writers['syslog'] = new \Zend_Log_Writer_Syslog();
+                self::add_writer(self::$writers['syslog']);
+                break;
+        }
     }
     
     /**
@@ -52,7 +80,7 @@ class Steam_Logger
      * @return void
      * @param object $writer Zend Log Writer
      */
-    public static function add_writer(Zend_Log_Writer_Abstract $writer)
+    public static function add_writer(\Zend_Log_Writer_Abstract $writer)
     {
         return self::$logger->addWriter($writer);
     }

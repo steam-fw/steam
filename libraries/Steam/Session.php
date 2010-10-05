@@ -5,7 +5,7 @@
  * This class replaces the built-in PHP session handler with a custom one with a
  * Memcache back end.
  *
- * Copyright 2008-2009 Shaddy Zeineddine
+ * Copyright 2008-2010 Shaddy Zeineddine
  *
  * This file is part of Steam, a PHP application framework.
  *
@@ -24,12 +24,14 @@
  *
  * @category Frameworks
  * @package Steam
- * @copyright 2008-2009 Shaddy Zeineddine
+ * @copyright 2008-2010 Shaddy Zeineddine
  * @license http://www.gnu.org/licenses/gpl.txt GPL v3 or later
  * @link http://code.google.com/p/steam-fw
  */
 
-class Steam_Web_Session implements Zend_Session_SaveHandler_Interface
+namespace Steam;
+
+class Session implements \Zend_Session_SaveHandler_Interface
 {
     protected $lifetime;
     
@@ -52,9 +54,9 @@ class Steam_Web_Session implements Zend_Session_SaveHandler_Interface
     {
         try
         {
-            return Steam_Cache::get('session', $session_id);
+            return \Steam\Cache::get('session', $session_id);
         }
-        catch (Steam_Exception_Cache $exception)
+        catch (\Steam\Exception\Cache $exception)
         {
             session_regenerate_id();
         }
@@ -62,7 +64,7 @@ class Steam_Web_Session implements Zend_Session_SaveHandler_Interface
     
     public function write($session_id, $session_data)
     {
-        if (Steam_Cache::set('session', $session_id, $session_data, $this->lifetime))
+        if (\Steam\Cache::set('session', $session_id, $session_data, $this->lifetime))
         {
             return true;
         }
@@ -74,7 +76,7 @@ class Steam_Web_Session implements Zend_Session_SaveHandler_Interface
     
     public function destroy($session_id)
     {
-        if (Steam_Cache::delete('session', $session_id))
+        if (\Steam\Cache::delete('session', $session_id))
         {
             return true;
         }

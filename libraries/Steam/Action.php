@@ -1,10 +1,10 @@
 <?php
 /**
- * Steam Cookie Class
+ * Steam Action Class
  *
- * This class contains utilities for interacting with URIs.
+ * This class executes action modules.
  *
- * Copyright 2008-2009 Shaddy Zeineddine
+ * Copyright 2008-2010 Shaddy Zeineddine
  *
  * This file is part of Steam, a PHP application framework.
  *
@@ -23,33 +23,46 @@
  *
  * @category Frameworks
  * @package Steam
- * @copyright 2008-2009 Shaddy Zeineddine
+ * @copyright 2008-2010 Shaddy Zeineddine
  * @license http://www.gnu.org/licenses/gpl.txt GPL v3 or later
  * @link http://code.google.com/p/steam-fw
  */
 
-class Steam_Web_Cookie
+namespace Steam;
+
+class Action
 {
-    public static function set($name, $value, $days)
+    public static function perform($action_name, $request, $response)
     {
-        setcookie($name, $value, time() + ($days * 86400), '/');
+        try
+        {
+            $action = include \Steam::app_path('actions/' . $action_name . '.php');
+        }
+        catch (\Steam\Exeption\FileNotFound $exception)
+        {
+            \Steam\Error::display(404);
+            exit;
+        }
+        
+        if (!is_callable($action))
+        {
+            throw new \Steam\Exception\General('There was a problem performing the action.');
+        }
+        
+        $action($request, $response);
+        
+        if (isset($_SERVER['HTTP_REFERER']))
+        {
+            $response->setRedirect($_SERVER['HTTP_REFERER'], 303);
+        }
+        
+        \Steam\Event::trigger('steam-response');
+        
+        $response->sendResponse();
     }
     
-    public static function get($name)
+    public static function shutdown()
     {
-        if (isset($_COOKIE[$name]))
-        {
-            return $_COOKIE[$name];
-        }
-        else
-        {
-            return NULL;
-        }
-    }
-    
-    public static function delete($name)
-    {
-        setcookie($name, NULL, time() - 3600, '/');
     }
 }
 

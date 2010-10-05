@@ -1,11 +1,10 @@
 <?php
 /**
- * Steam Auth Exception
+ * Steam Method Not Implemented Exception
  *
- * This exception is thrown when a user attempts to access something without
- * being authorized.
+ * This exception is thrown when a model's method has not been implemented.
  *
- * Copyright 2008-2009 Shaddy Zeineddine
+ * Copyright 2008-2010 Shaddy Zeineddine
  *
  * This file is part of Steam, a PHP application framework.
  *
@@ -24,18 +23,20 @@
  *
  * @category Frameworks
  * @package Steam
- * @copyright 2008-2009 Shaddy Zeineddine
+ * @copyright 2008-2010 Shaddy Zeineddine
  * @license http://www.gnu.org/licenses/gpl.txt GPL v3 or later
  * @link http://code.google.com/p/steam-fw
  */
 
+namespace Steam\Exception;
+
 require_once 'Steam/Exception.php';
 
-class Steam_Exception_Auth extends Steam_Exception
+class MethodNotImplemented extends \Steam\Exception
 {
     protected function setMessage(&$message)
     {
-        $message = gettext('Unauthorized.');
+        $message = gettext('The method is not implemented in the model.');
     }
 }
 

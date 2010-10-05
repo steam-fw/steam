@@ -4,7 +4,7 @@
  *
  * This class contains utilities related to the current application.
  *
- * Copyright 2008-2009 Shaddy Zeineddine
+ * Copyright 2008-2010 Shaddy Zeineddine
  *
  * This file is part of Steam, a PHP application framework.
  *
@@ -23,12 +23,14 @@
  *
  * @category Frameworks
  * @package Steam
- * @copyright 2008-2009 Shaddy Zeineddine
+ * @copyright 2008-2010 Shaddy Zeineddine
  * @license http://www.gnu.org/licenses/gpl.txt GPL v3 or later
  * @link http://code.google.com/p/steam-fw
  */
 
-class Steam_Application
+namespace Steam;
+
+class Application
 {
     /**
      * The application name, the name of its directory
@@ -50,29 +52,46 @@ class Steam_Application
     public static function load($app_name)
     {
         self::$app_name     = $app_name;
-        self::$app_base_dir = Steam::path('apps/' . self::$app_name . '/');
+        self::$app_base_dir = \Steam::path('apps/' . self::$app_name . '/');
         
-        if (!is_dir(self::$app_base_dir))
+        if (!self::$app_name or !is_dir(self::$app_base_dir))
         {
-            throw new Steam_Exception_AppNotFound();
+            throw new \Steam\Exception\AppNotFound();
         }
         
         try
         {
-            include self::path('config.php');
+            \Steam\Config::load('app', self::path('config.php'));
             
-            if (isset($library))
+            foreach (\Steam\Config::get('app/logs', array()) as $writer)
             {
-                Steam_Loader::register($library, self::$app_base_dir);
+                \Steam\Logger::enable($writer);
             }
+            
+            foreach (\Steam\Config::get('app/libraries', array()) as $library)
+            {
+                \Steam\Loader::register($library, self::$app_base_dir);
+            }
+            
+            if (\Steam\Config::get('app/timezone', ''))
+            {
+                \Steam\Locale::set_timezone(\Steam\Config::get('app/timezone'));
+            }
+            
+            if (\Steam\Config::get('app/locale', ''))
+            {
+                \Steam\Locale::set_locale(\Steam\Config::get('app/locale'));
+            }
+            
+            if (\Steam\Config::get('app/db_adapter', ''))
+            {
+                \Steam\Db::initialize(\Steam\Config::get('app/db_adapter'), \Steam\Config::get('app/db_params'));
+            }
+            
+            self::$app_base_uri = \Steam\Config::get('app/base_uri', '');
         }
-        catch (Steam_Exception_FileNotFound $exception)
+        catch (\Steam\Exception\FileNotFound $exception)
         {
-            // no application configuration file, continue
-        }
-        catch (Exception $exception)
-        {
-            Steam_Error::log_exception($exception);
         }
     }
     
@@ -124,7 +143,7 @@ class Steam_Application
      * Sets or retrieves the application base URI. The base URI can only be set
      * once. An exception is thrown if an attempt is made to change it.
      *
-     * @throws Steam_Exception_General
+     * @throws Steam\Exception\General
      * @return void|string application base URI
      * @param string application base URI
      */
@@ -134,7 +153,7 @@ class Steam_Application
         {
             if (!is_null(self::$app_base_uri))
             {
-                throw new Steam_Exception_General();
+                throw new \Steam\Exception\General();
             }
             else
             {
@@ -143,6 +162,11 @@ class Steam_Application
         }
         
         return self::$app_base_uri;
+    }
+    
+    public static function static_uri($path = '')
+    {
+        return rtrim('/' . self::$app_name . '/' . ltrim($path, '/'), '/');
     }
     
     /**
@@ -154,16 +178,6 @@ class Steam_Application
     public static function uri($path = '')
     {
         return rtrim(self::$app_base_uri, '/') . '/' . ltrim($path, '/');
-    }
-    
-    /**
-     * Returns the application name as the string representation of the object.
-     *
-     * @return string application name
-     */
-    public static function __toString()
-    {
-        return self::$app_name;
     }
 }
 

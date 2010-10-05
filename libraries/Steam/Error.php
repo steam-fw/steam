@@ -4,7 +4,7 @@
  *
  * This class handles errors and exceptions.
  *
- * Copyright 2008-2009 Shaddy Zeineddine
+ * Copyright 2008-2010 Shaddy Zeineddine
  *
  * This file is part of Steam, a PHP application framework.
  *
@@ -23,12 +23,14 @@
  *
  * @category Frameworks
  * @package Steam
- * @copyright 2008-2009 Shaddy Zeineddine
+ * @copyright 2008-2010 Shaddy Zeineddine
  * @license http://www.gnu.org/licenses/gpl.txt GPL v3 or later
  * @link http://code.google.com/p/steam-fw
  */
 
-class Steam_Error
+namespace Steam;
+
+class Error
 {
     /**
      * Exceptions which were caught by the default exception handler.
@@ -43,9 +45,9 @@ class Steam_Error
     public static function initialize()
     {
         // set the custom error and exception handlers
-        set_exception_handler('Steam_Error::exception_handler');
-        set_error_handler('Steam_Error::error_handler');
-        register_shutdown_function('Steam_Error::shutdown');
+        set_exception_handler('\Steam\Error::exception_handler');
+        set_error_handler('\Steam\Error::error_handler');
+        register_shutdown_function('\Steam\Error::shutdown');
         
         // don't display errors because Steam is handling error output now
         ini_set('display_errors', 0);
@@ -79,13 +81,13 @@ class Steam_Error
             'Undefined variable: ' => 'Fatal',
             );
         
-        $exception_class = 'Steam_Exception_PHP';
+        $exception_class = 'Steam\\Exception\\PHP';
         
         foreach ($map as $error_message => $exception_type)
         {
             if (is_numeric(strpos($message, $error_message)))
             {
-                $exception_class = 'Steam_Exception_' . $exception_type;
+                $exception_class = 'Steam\\Exception\\' . $exception_type;
                 
                 break;
             }
@@ -96,7 +98,7 @@ class Steam_Error
         self::log_exception($exception);
         
         // certain errors cannot be handled properly when thrown
-        if ($exception_class == 'Steam_Exception_Fatal')
+        if ($exception_class == 'Steam\Exception\Fatal')
         {
             self::exception_handler($exception);
         }
@@ -113,23 +115,23 @@ class Steam_Error
      * @return void
      * @param object $exception exception
      */
-    public static function exception_handler(Exception $exception)
+    public static function exception_handler(\Exception $exception)
     {
         try
         {
             self::$exceptions[] = self::log_exception($exception);
         }
-        catch (Exception $exception)
+        catch (\Exception $exception)
         {
             echo 'There was a problem handling the exception : ' . $exception->getMessage() . ' in ' . $exception->getFile() . ' on line ' . $exception->getLine();
         }
     }
     
-    public static function log_exception(Exception $exception)
+    public static function log_exception(\Exception $exception)
     {
             $message = $exception->getMessage() . ' on line ' . $exception->getLine() . ' of ' . $exception->getFile();
             
-            Steam_Logger::log(Steam_Application::name() . ': ' . $message, Zend_Log::ERR);
+            \Steam\Logger::log(\Steam::app() . ': ' . $message, \Zend_Log::ERR);
             
             return $message;
     }
@@ -142,7 +144,7 @@ class Steam_Error
      */
     public static function shutdown()
     {
-        if (count(self::$exceptions))
+        if (isset(self::$exceptions[0]))
         {
             foreach (self::$exceptions as $exception)
             {
@@ -154,6 +156,23 @@ class Steam_Error
             echo $error['message'] . ' on line ' . $error['line'] . ' of ' . $error['file'];
         }
     }
+    
+    public static function display($http_status_code, $error_message = '')
+    {
+        // set the HTTP status code and message
+        \Steam::$response->setHeader('HTTP/1.1 ' . $http_status_code . ' ' . \Zend_Http_Response::responseCodeAsText($http_status_code), true);
+        
+        \Steam\Event::trigger('steam-response');
+        
+        \Steam::$response->sendHeaders();
+        
+        // if it's not found, display the 404 error page
+        include \Steam::path('apps/global/error_pages/HTTP_' . $http_status_code . '.php');
+        
+        if ($error_message)
+        {
+            echo $error_message;
+        }
+    }
 }
-
 ?>

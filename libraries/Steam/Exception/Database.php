@@ -4,7 +4,7 @@
  *
  * This exception is thrown when there is a database issue.
  *
- * Copyright 2008-2009 Shaddy Zeineddine
+ * Copyright 2008-2010 Shaddy Zeineddine
  *
  * This file is part of Steam, a PHP application framework.
  *
@@ -23,14 +23,16 @@
  *
  * @category Frameworks
  * @package Steam
- * @copyright 2008-2009 Shaddy Zeineddine
+ * @copyright 2008-2010 Shaddy Zeineddine
  * @license http://www.gnu.org/licenses/gpl.txt GPL v3 or later
  * @link http://code.google.com/p/steam-fw
  */
 
+namespace Steam\Exception;
+
 require_once 'Steam/Exception.php';
 
-class Steam_Exception_Database extends Steam_Exception
+class Database extends \Steam\Exception
 {
     protected function setMessage(&$message)
     {

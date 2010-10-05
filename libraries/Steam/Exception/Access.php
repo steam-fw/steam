@@ -1,10 +1,11 @@
 <?php
 /**
- * Steam Initializer
+ * Steam Access Exception
  *
- * This script initializes the Steam environment.
+ * This exception is thrown when a user attempts to access something without
+ * being authorized.
  *
- * Copyright 2008-2009 Shaddy Zeineddine
+ * Copyright 2008-2010 Shaddy Zeineddine
  *
  * This file is part of Steam, a PHP application framework.
  *
@@ -23,31 +24,21 @@
  *
  * @category Frameworks
  * @package Steam
- * @copyright 2008-2009 Shaddy Zeineddine
+ * @copyright 2008-2010 Shaddy Zeineddine
  * @license http://www.gnu.org/licenses/gpl.txt GPL v3 or later
  * @link http://code.google.com/p/steam-fw
  */
 
-// first thing's first, begin output buffering
-ob_start();
+namespace Steam\Exception;
 
-// identify the directory where Steam resides
-$base_dir = str_replace('initializer.php', '', __FILE__);
+require_once 'Steam/Exception.php';
 
-// include the Steam class
-require_once $base_dir . 'libraries/Steam.php';
-
-// set the base_dir var in the Steam class and unset the temporary var
-Steam::base_dir($base_dir);
-unset($base_dir);
-
-// initialize the Steam class, this loads the config
-Steam::initialize();
-
-// include useful functions to augment PHP's built-in functions
-require_once Steam::path('functions.php');
-
-// fire the ready event
-Steam_Event::trigger('ready');
+class Access extends \Steam\Exception
+{
+    protected function setMessage(&$message)
+    {
+        $message = gettext('Unauthorized.');
+    }
+}
 
 ?>
