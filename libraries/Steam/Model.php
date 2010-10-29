@@ -4,7 +4,7 @@
  *
  * This class provides an interface for manipulating stored model/resources.
  *
- * Copyright 2008-2010 Shaddy Zeineddine
+ * Copyright 2008-2009 Shaddy Zeineddine
  *
  * This file is part of Steam, a PHP application framework.
  *
@@ -23,7 +23,7 @@
  *
  * @category Frameworks
  * @package Steam
- * @copyright 2008-2010 Shaddy Zeineddine
+ * @copyright 2008-2009 Shaddy Zeineddine
  * @license http://www.gnu.org/licenses/gpl.txt GPL v3 or later
  * @link http://code.google.com/p/steam-fw
  */
@@ -277,6 +277,7 @@ class Model
                 break;
             default:
                 $method = '';
+                $query = new \Steam\Model\Query();
         }
         
         // perform the actual request

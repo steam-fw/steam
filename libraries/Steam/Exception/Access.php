@@ -5,7 +5,7 @@
  * This exception is thrown when a user attempts to access something without
  * being authorized.
  *
- * Copyright 2008-2010 Shaddy Zeineddine
+ * Copyright 2008-2009 Shaddy Zeineddine
  *
  * This file is part of Steam, a PHP application framework.
  *
@@ -24,7 +24,7 @@
  *
  * @category Frameworks
  * @package Steam
- * @copyright 2008-2010 Shaddy Zeineddine
+ * @copyright 2008-2009 Shaddy Zeineddine
  * @license http://www.gnu.org/licenses/gpl.txt GPL v3 or later
  * @link http://code.google.com/p/steam-fw
  */

@@ -1,17 +1,43 @@
 <?php
+/**
+ * Steam Class Model Query Class
+ *
+ * This class provides a standardized method of requesting model.
+ *
+ * Copyright 2008-2009 Shaddy Zeineddine
+ *
+ * This file is part of Steam, a PHP application framework.
+ *
+ * Steam is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Steam is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @category Frameworks
+ * @package Steam
+ * @copyright 2008-2009 Shaddy Zeineddine
+ * @license http://www.gnu.org/licenses/gpl.txt GPL v3 or later
+ * @link http://code.google.com/p/steam-fw
+ */
 
-class Steam_Data_Query implements Iterator, ArrayAccess
+namespace Steam\Model;
+
+class Query implements \Iterator, \ArrayAccess
 {
     protected $sxe;
     protected $index = 0;
     
-    public $max_items      = 0;
-    public $start_index    = 1;
-    public $items_per_page = 0;
-    
     public function __construct($xml = NULL)
     {
-        if (is_null($xml))
+        if (is_null($xml) or !$xml)
         {
             $xml = array();
         }
@@ -23,11 +49,11 @@ class Steam_Data_Query implements Iterator, ArrayAccess
         
         try
         {
-            $this->sxe = new SimpleXMLElement($xml);
+            $this->sxe = new \SimpleXMLElement($xml);
         }
-        catch (Exception $exception)
+        catch (\Exception $exception)
         {
-            throw new Steam_Exception_Type($exception->getMessage());
+            throw new \Steam\Exception\Type($exception->getMessage());
         }
     }
     
@@ -165,15 +191,12 @@ class Steam_Data_Query implements Iterator, ArrayAccess
     
     public function add_item($item)
     {
-        try
-        {
-            $item_element = $this->sxe->items->addChild('item');
-        }
-        catch (Exception $exception)
+        if (!isset($this->sxe->items))
         {
             $this->sxe->addChild('items');
-            $item_element = $this->sxe->items->addChild('item');
         }
+        
+        $item_element = $this->sxe->items->addChild('item');
         
         foreach ($item as $name => $value)
         {
@@ -195,13 +218,13 @@ class Steam_Data_Query implements Iterator, ArrayAccess
                 }
                 else
                 {
-                    throw new Steam_Exception_General('Invalid Format.');
+                    throw new \Steam\Exception\General('Invalid Format.');
                 }
                 
                 continue;
             }
             
-            $item_element->addChild($name, $value);
+            $item_element->addChild($name, htmlspecialchars($value));
         }
     }
     

@@ -62,7 +62,9 @@ class Steam
     
     public static function this_uri()
     {
-        return rtrim(self::$config['base_uri'], '/') . '/' . ltrim(self::$resource, '/');
+        $query_string = (!empty($_SERVER['QUERY_STRING'])) ? '?' . $_SERVER['QUERY_STRING'] : '';
+        
+        return rtrim(self::$config['base_uri'], '/') . '/' . ltrim(self::$resource, '/') . $query_string;
     }
     
     public static function static_uri($path)
@@ -80,6 +82,49 @@ class Steam
         self::initialize();
         
         self::dispatch();
+        
+        \Steam\Event::trigger('steam-complete');
+    }
+    
+    public static function run($app_name, $resource_type, $resource_name)
+    {
+        self::load_config();
+        
+        self::initialize();
+
+        try
+        {
+            self::load_app($app_name);
+            
+            switch ($resource_type)
+            {
+                case 'view':
+                    \Steam\View::display($resource_name, self::$request, self::$response);
+                    break;
+                case 'model':
+                    \Steam\Model::display($resource_name . '?' . $_SERVER['QUERY_STRING'], self::$request, self::$response);
+                    break;
+                case 'action';
+                    \Steam\Action::perform($resource_name, self::$request, self::$response);
+                    break;
+            }
+        }
+        catch (\Steam\Exception\AppNotFound $exception)
+        {
+            return \Steam\Error::display(500, $exception->getMessage());
+        }
+        catch (\Steam\Exception\FileNotFound $exception)
+        {
+            return \Steam\Error::display(404, $exception->getMessage());
+        }
+        catch (\Steam\Exception\General $exception)
+        {
+            return \Steam\Error::display(500, $exception->getMessage());
+        }
+        catch (\Exception $exception)
+        {
+            return \Steam\Error::display(500, $exception->getMessage());
+        }
         
         \Steam\Event::trigger('steam-complete');
     }
@@ -112,6 +157,8 @@ class Steam
             'db_params'     => $db_params,
             'portals'       => $portals,
         );
+        
+        chdir(self::$config['base_dir']);
     }
     
     private static function initialize()

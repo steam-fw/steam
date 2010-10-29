@@ -4,7 +4,7 @@
  *
  * This class configures localization settings and translation of Steam text.
  *
- * Copyright 2008-2010 Shaddy Zeineddine
+ * Copyright 2008-2009 Shaddy Zeineddine
  *
  * This file is part of Steam, a PHP application framework.
  *
@@ -23,7 +23,7 @@
  *
  * @category Frameworks
  * @package Steam
- * @copyright 2008-2010 Shaddy Zeineddine
+ * @copyright 2008-2009 Shaddy Zeineddine
  * @license http://www.gnu.org/licenses/gpl.txt GPL v3 or later
  * @link http://code.google.com/p/steam-fw
  */
@@ -59,7 +59,7 @@ class Locale
         \Zend_Registry::set('\Zend_Locale', new \Zend_Locale($locale));
         
         // create an instance of Zend_Translate for translating core Steam text
-        self::$translator = new \Zend_Translate('gettext', \Steam::path('apps/global/translations'), NULL, array('scan' => \Zend_Translate::LOCALE_DIRECTORY));
+        #self::$translator = new \Zend_Translate('gettext', \Steam::path('apps/global/translations'), NULL, array('scan' => \Zend_Translate::LOCALE_DIRECTORY));
     }
     
     /**

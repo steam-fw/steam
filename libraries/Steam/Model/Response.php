@@ -1,6 +1,8 @@
 <?php
 
-class Steam_Data_Response extends Steam_Data_Query
+namespace Steam\Model;
+
+class Response extends Query
 {
     
     public function __construct()
@@ -14,7 +16,7 @@ class Steam_Data_Response extends Steam_Data_Query
                '    <items></items>' . "\n" .
                '</data>';
         
-        $this->sxe = new SimpleXMLElement($xml);
+        $this->sxe = new \SimpleXMLElement($xml);
     }
     
     public function add_results(&$select)
