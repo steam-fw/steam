@@ -32,6 +32,8 @@ namespace Steam;
 
 class Error
 {
+    private static $exception;
+    
     /**
      * Exceptions which were caught by the default exception handler.
      */
@@ -93,7 +95,9 @@ class Error
             }
         }
         
-        $exception = new $exception_class($message, $level, $file, $line);
+        $exception = new $exception_class($message, $level);
+        $exception->setFile($file);
+        $exception->setLine($line);
         
         self::log_exception($exception);
         
@@ -129,6 +133,8 @@ class Error
     
     public static function log_exception(\Exception $exception)
     {
+            self::$exception = $exception;
+            
             $message = $exception->getMessage() . ' on line ' . $exception->getLine() . ' of ' . $exception->getFile();
             
             \Steam\Logger::log(\Steam::app() . ': ' . $message, \Zend_Log::ERR);
@@ -160,19 +166,41 @@ class Error
     public static function display($http_status_code, $error_message = '')
     {
         // set the HTTP status code and message
-        \Steam::$response->setHeader('HTTP/1.1 ' . $http_status_code . ' ' . \Zend_Http_Response::responseCodeAsText($http_status_code), true);
+        \Steam::$response->setRawHeader('HTTP/1.1 ' . $http_status_code . ' ' . \Zend_Http_Response::responseCodeAsText($http_status_code), true);
         
         \Steam\Event::trigger('steam-response');
         
         \Steam::$response->sendHeaders();
         
-        // if it's not found, display the 404 error page
-        include \Steam::path('apps/global/error_pages/HTTP_' . $http_status_code . '.php');
-        
-        if ($error_message)
+        if ($error_page = \Steam::config('error_page'))
         {
-            echo $error_message;
+            try
+            {
+                $request  = new \Zend_Controller_Request_Http();
+                $response = new \Zend_Controller_Response_Http();
+                \Steam\View::display($error_page, $request, $response);
+            }
+            catch (\Exception $exception)
+            {
+                include \Steam::path('apps/global/error_pages/HTTP_' . $http_status_code . '.php');
+            }
         }
+        else
+        {
+            // if it's not found, display the 404 error page
+            include \Steam::path('apps/global/error_pages/HTTP_' . $http_status_code . '.php');
+            /*
+            if ($error_message)
+            {
+                print $error_message;
+            }*/
+        }
+        
+    }
+    
+    public static function last_exception()
+    {
+        return self::$exception;
     }
 }
 ?>

@@ -40,32 +40,32 @@ abstract class Exception extends \Exception
      * @param string $file file
      * @param int $line line number
      */
-    public function __construct($message = NULL, $code = NULL, $file = NULL, $line = NULL)
+    public function __construct($message = NULL, $code = NULL, \Exception $previous = NULL)
     {
         if (is_null($message))
         {
-            $this->setMessage($message);
+            $message = $this->defaultMessage();
         }
         
-        parent::__construct($message, $code);
-        
-        if (!is_null($file))
-        {
-            $this->file = $file;
-        }
-        
-        if (!is_null($line))
-        {
-            $this->line = $line;
-        }
+        parent::__construct($message, $code, $previous);
+    }
+    
+    public function setFile($file)
+    {
+        $this->file = $file;
+    }
+    
+    public function setLine($line)
+    {
+        $this->line = $line;
     }
     
     /**
-     * Sets the message to a default message in the current language.
+     * Returns the default message in the current language.
      *
      * @return void
      * @param &$message localized error message
      */
-    abstract protected function setMessage(&$message);
+    abstract protected function defaultMessage();
 }
 ?>

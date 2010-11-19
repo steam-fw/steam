@@ -54,7 +54,7 @@ class Session implements \Zend_Session_SaveHandler_Interface
     {
         try
         {
-            return \Steam\Cache::get('session', $session_id);
+            return \Steam\Cache::get('_session', $session_id);
         }
         catch (\Steam\Exception\Cache $exception)
         {
@@ -64,7 +64,7 @@ class Session implements \Zend_Session_SaveHandler_Interface
     
     public function write($session_id, $session_data)
     {
-        if (\Steam\Cache::set('session', $session_id, $session_data, $this->lifetime))
+        if (\Steam\Cache::set('_session', $session_id, $session_data, $this->lifetime))
         {
             return true;
         }
@@ -76,7 +76,7 @@ class Session implements \Zend_Session_SaveHandler_Interface
     
     public function destroy($session_id)
     {
-        if (\Steam\Cache::delete('session', $session_id))
+        if (\Steam\Cache::delete('_session', $session_id))
         {
             return true;
         }

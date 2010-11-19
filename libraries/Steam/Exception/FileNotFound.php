@@ -34,9 +34,9 @@ require_once 'Steam/Exception.php';
 
 class FileNotFound extends \Steam\Exception
 {
-    protected function setMessage(&$message)
+    protected function defaultMessage()
     {
-        $message = gettext('A necessary file could not be found.');
+        return gettext('A necessary file could not be found.');
     }
 }
 

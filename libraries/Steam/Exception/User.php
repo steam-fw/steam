@@ -34,9 +34,9 @@ require_once 'Steam/Exception.php';
 
 class User extends \Steam\Exception
 {
-    protected function setMessage(&$message)
+    protected function defaultMessage()
     {
-        $message = gettext('A general user exception has occurred.');
+        return gettext('A general user exception has occurred.');
     }
 }
 

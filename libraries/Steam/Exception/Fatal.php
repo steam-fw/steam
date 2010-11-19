@@ -34,9 +34,9 @@ require_once 'Steam/Exception.php';
 
 class Fatal extends \Steam\Exception
 {
-    protected function setMessage(&$message)
+    protected function defaultMessage()
     {
-        $message = gettext('A fatal exception has occurred.');
+        return gettext('A fatal exception has occurred.');
     }
 }
 

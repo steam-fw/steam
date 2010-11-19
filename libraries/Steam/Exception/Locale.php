@@ -34,9 +34,9 @@ require_once 'Steam/Exception.php';
 
 class Locale extends \Steam\Exception
 {
-    protected function setMessage(&$message)
+    protected function defaultMessage()
     {
-        $message = gettext('A localization exception has occurred.');
+        return gettext('A localization exception has occurred.');
     }
 }
 

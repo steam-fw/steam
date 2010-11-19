@@ -221,25 +221,25 @@ class Model
         catch (\Steam\Exception\Access $exception)
         {
             $response->error = $exception->getMessage();
-            \Steam\Error::display(401, $exception->getMessage());
+            $response->status = 401;
         }
         // if the method isn't implemented
         catch (\Steam\Exception\MethodNotImplemented $exception)
         {
             $response->error = $exception->getMessage();
-            \Steam\Error::display(405, $exception->getMessage());
+            $response->status = 405;
         }
         // if the file doesn't exist
         catch (\Steam\Exception\FileNotFound $exception)
         {
             $response->error = $exception->getMessage();
-            \Steam\Error::display(404, $exception->getMessage());
+            $response->status = 404;
         }
         // catch all other exceptions and return the error in the response
         catch (Exception $exception)
         {
             $response->error = $exception->getMessage();
-            \Steam\Error::display(500, $exception->getMessage());
+            $response->status = 500;
         }
     }
     

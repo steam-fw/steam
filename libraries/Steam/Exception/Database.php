@@ -34,9 +34,9 @@ require_once 'Steam/Exception.php';
 
 class Database extends \Steam\Exception
 {
-    protected function setMessage(&$message)
+    protected function defaultMessage()
     {
-        $message = gettext('An unknown database exception has occurred.');
+        return gettext('An unknown database exception has occurred.');
     }
 }
 

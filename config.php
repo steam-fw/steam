@@ -91,6 +91,41 @@ $libraries = array();
 $logs = array('firebug', 'php');
 
 /**
+ * error_page
+ *
+ * Sets the default error page view. Empty values will prompt Steam to use its
+ * own basic error page.
+ *
+ * Default: ""
+ * Suggestions: "", "error", "error_page"
+ */
+$error_page = '';
+
+/**
+ * static_maxage
+ *
+ * Defines length browsers should cache static resources. The format is a
+ * number followed by a letter identifying the units. The following units
+ * are recognized: d=day, m=month, y=year. The maximum allowed value is
+ * one year, the minimum recommended value is one day.
+ *
+ * Default: "30d"
+ * Suggestions: "30d", "1m", "1y"
+ */
+$static_maxage = '30d';
+
+/**
+ * static_path
+ *
+ * Sets the partial uri path which is used to access static resources. This
+ * setting much match the path used in your portals to map to static resources.
+ *
+ * Default: "static"
+ * Suggestions: "static", "assets"
+ */
+$static_path = 'static';
+
+/**
  * cache_backend
  *
  * Defines the shared data cache which relies upon Zend_Cache.
@@ -164,20 +199,26 @@ $db_params        = array(
 $portals = array(
     array(
         'app'    => 'example',
-        'domain' => '/^.*$/',
-        'path'   => '/^\\/actions\\/(.*)/',
+        'domain' => '~^.*$~',
+        'path'   => '~^/actions/(.*)~',
         'type'   => 'action',
     ),
     array(
         'app'    => 'example',
-        'domain' => '/^.*$/',
-        'path'   => '/^\\/data\\/(.*)/',
+        'domain' => '~^.*$~',
+        'path'   => '~^/data/(.*)~',
         'type'   => 'model',
     ),
     array(
         'app'    => 'example',
-        'domain' => '/^.*$/',
-        'path'   => '/^.*/',
+        'domain' => '~^.*$~',
+        'path'   => '~^/static/(.*)~',
+        'type'   => 'static',
+    ),
+    array(
+        'app'    => 'example',
+        'domain' => '~^.*$~',
+        'path'   => '~^.*~',
         'type'   => 'view',
     ),
 );

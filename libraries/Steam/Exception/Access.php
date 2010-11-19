@@ -35,9 +35,9 @@ require_once 'Steam/Exception.php';
 
 class Access extends \Steam\Exception
 {
-    protected function setMessage(&$message)
+    protected function defaultMessage()
     {
-        $message = gettext('Unauthorized.');
+        return gettext('Unauthorized.');
     }
 }
 

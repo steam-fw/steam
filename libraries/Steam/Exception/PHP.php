@@ -34,9 +34,9 @@ require_once 'Steam/Exception.php';
 
 class PHP extends \Steam\Exception
 {
-    protected function setMessage(&$message)
+    protected function defaultMessage()
     {
-        $message = gettext('An unknown PHP error has occurred.');
+        return gettext('An unknown PHP error has occurred.');
     }
 }
 

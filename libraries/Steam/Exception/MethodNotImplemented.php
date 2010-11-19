@@ -34,9 +34,9 @@ require_once 'Steam/Exception.php';
 
 class MethodNotImplemented extends \Steam\Exception
 {
-    protected function setMessage(&$message)
+    protected function defaultMessage()
     {
-        $message = gettext('The method is not implemented in the model.');
+        return gettext('The method is not implemented in the model.');
     }
 }
 

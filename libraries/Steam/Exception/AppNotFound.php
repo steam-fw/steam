@@ -34,9 +34,9 @@ require_once 'Steam/Exception.php';
 
 class AppNotFound extends \Steam\Exception
 {
-    protected function setMessage(&$message)
+    protected function defaultMessage()
     {
-        $message = gettext('The application could not be found.');
+        return gettext('The application could not be found.');
     }
 }
 

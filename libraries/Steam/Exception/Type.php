@@ -34,9 +34,9 @@ require_once 'Steam/Exception.php';
 
 class Type extends \Steam\Exception
 {
-    protected function setMessage(&$message)
+    protected function defaultMessage()
     {
-        $message = gettext('A variable type expectation has failed.');
+        return gettext('A variable type expectation has failed.');
     }
 }
 

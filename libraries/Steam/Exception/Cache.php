@@ -34,9 +34,9 @@ require_once 'Steam/Exception.php';
 
 class Cache extends \Steam\Exception
 {
-    protected function setMessage(&$message)
+    protected function defaultMessage()
     {
-        $message = gettext('An unknown memory cache exception has occurred.');
+        return gettext('An unknown memory cache exception has occurred.');
     }
 }
 
