@@ -43,6 +43,19 @@ class StaticResource
                 // Check to see if this resource has been mapped to a different file
                 $filepath = \Steam\Cache::get('_static:real-path', \Steam::uri('/' . \Steam::config('static_path') . '/' . $resource));
                 
+                if (substr($filepath, 0, 11) == 'cache-file:')
+                {
+                    $cache_file = \Steam\Cache::get('_static:cache-file-info', substr($filepath, 11));
+                    $cache_file = unserialize($cache_file);
+                    
+                    $date = new \Zend_Date($cache_file['last_mod'], \Zend_Date::TIMESTAMP);
+                    $last_mod = $date->toString(\Zend_Date::RFC_1123);
+                    $expires  = $date->addYear(1)->toString(\Zend_Date::RFC_1123);
+                    $max_age  = 31536000;
+                    $content_length = $cache_file['content_length'];
+                    $content_type   = $cache_file['content_type'];
+                }
+                
                 // fingerprinted resources can be cached for the max time allowed
                 $maxage = '1y';
             }
@@ -55,63 +68,92 @@ class StaticResource
                 $maxage = \Steam::config('static_maxage');
             }
             
-            // create and set the file's last modified date
-            $date = new \Zend_Date(filemtime($filepath), \Zend_Date::TIMESTAMP);
-            
-            // save the last modified date string
-            $last_mod = $date->toString(\Zend_Date::RFC_1123);
-            
-            
-            // if it's not empty, parse and use it
-            if ($maxage)
+            if (!isset($cache_file))
             {
-                $maxage_unit  = substr($maxage, -1, 1);
-                $maxage_value = substr($maxage, 0, strlen($maxage) - 1);
+                // create and set the file's last modified date
+                $date = new \Zend_Date(filemtime($filepath), \Zend_Date::TIMESTAMP);
                 
-                switch ($maxage_unit)
+                // save the last modified date string
+                $last_mod = $date->toString(\Zend_Date::RFC_1123);
+                
+                // store other info about the file
+                $content_length = filesize($filepath);
+                $content_type = file_mimetype($filepath);
+                
+                
+                // if it's not empty, parse and use it
+                if ($maxage)
                 {
-                    case 'y':
-                        $max_age = 365;
-                    case 'm':
-                        $max_age = 30.42 * $maxage_value;
-                    default:
-                        $max_age = $maxage_value;
+                    $maxage_unit  = substr($maxage, -1, 1);
+                    $maxage_value = substr($maxage, 0, strlen($maxage) - 1);
+                    
+                    switch ($maxage_unit)
+                    {
+                        case 'y':
+                            $max_age = 365;
+                            break;
+                        case 'm':
+                            $max_age = 30.42 * $maxage_value;
+                            break;
+                        default:
+                            $max_age = $maxage_value;
+                    }
+                    
+                    $date->addDay(intval($max_age));
+                    $max_age = 86400 * max(min(365, intval($max_age)), 0);
+                }
+                // otherwise use a default of 30 days
+                else
+                {
+                    $date->addDay(30);
+                    $max_age = 2592000;
                 }
                 
-                $date->addDay(intval($max_age));
-                $max_age = 86400 * max(min(365, intval($max_age)), 0);
-            }
-            // otherwise use a default of 30 days
-            else
-            {
-                $date->addDay(30);
-                $max_age = 2592000;
+                // save the expiration date string
+                $expires = $date->toString(\Zend_Date::RFC_1123);
             }
             
-            // save the expiration date string
-            $expires = $date->toString(\Zend_Date::RFC_1123);
+            
+            header_remove('X-Powered-By');
+            header_remove('Expires');
+            header_remove('Pragma');
+            header_remove('Cache-Control');
+            
+            ob_end_clean();
             
             // set the appropriate headers
             $response->setHeader('Last-Modified',  $last_mod, true);
-            $response->setHeader('Content-Length', filesize($filepath), true);
-            $response->setHeader('Content-Type',   file_mimetype($filepath), true);
+            $response->setHeader('Content-Length', $content_length, true);
+            $response->setHeader('Content-Type',   $content_type, true);
             $response->setHeader('Expires',        $expires, true);
+            $response->setHeader('Vary',           'Accept-Encoding', true);
             $response->setHeader('Cache-Control', 'public, max-age=' . $max_age, true);
             $response->sendHeaders();
             
             // if this is a GET request, send the file as well
             if ($request->isGet())
             {
-                ob_end_clean();
-                readfile($filepath);
+                if (!isset($cache_file))
+                {
+                    switch ($content_type)
+                    {
+                        case 'application/javascript':
+                            include $filepath;
+                            break;
+                        default:
+                            readfile($filepath);
+                    }
+                }
+                else
+                {
+                    print \Steam\Cache::get('_static:cache-file', $cache_file['file_name']);
+                }
             }
         }
         catch (\Exception $exception)
         {
             $response->setRawHeader('HTTP/1.1 500 Internal Server Error', true);
             $response->sendHeaders();
-            
-            ob_end_clean();
             
             print($exception->getMessage());
             
@@ -122,7 +164,13 @@ class StaticResource
     public static function uri($path)
     {
         $filepath = \Steam::app_path('/static/' . $path);
-        $fileuri  = \Steam::uri('/' . \Steam::config('static_path') . '/' . $path);
+        $fileuri  = \Steam::uri('/' . \Steam::config('static_path') . '/' . ltrim($path, '/'));
+        
+        if (!file_exists($filepath))
+        {
+            return $fileuri;
+        }
+        
         $last_mod = filemtime($filepath);
         
         try

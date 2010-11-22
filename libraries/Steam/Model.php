@@ -199,7 +199,7 @@ class Model
                 for ($i = 0; $i < $items; $i++)
                 {
                     // check to see if the client is allowed to access the resource
-                    if (!call_user_func($model_class . '::is_allowed', $query->method, $query[$i]))
+                    if (!$model_class::is_allowed($query->method, $query[$i]))
                     {
                         throw new \Steam\Exception\Access();
                     }
@@ -208,14 +208,16 @@ class Model
             else
             {
                 // check to see if the client is allowed to access the resource
-                if (!call_user_func($model_class . '::is_allowed', $query->method))
+                if (!$model_class::is_allowed($query->method))
                 {
                     throw new \Steam\Exception\Access();
                 }
             }
             
             // call the method
-            call_user_func($model_class . '::' . '_' . $query->method, $query, $response);
+            $method = '_' . $query->method;
+            
+            $model_class::$method($query, $response);
         }
         // if there are access requirements which were not fulfilled
         catch (\Steam\Exception\Access $exception)
@@ -236,7 +238,7 @@ class Model
             $response->status = 404;
         }
         // catch all other exceptions and return the error in the response
-        catch (Exception $exception)
+        catch (\Exception $exception)
         {
             $response->error = $exception->getMessage();
             $response->status = 500;

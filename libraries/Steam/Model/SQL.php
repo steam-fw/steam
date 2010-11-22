@@ -4,6 +4,8 @@ namespace Steam\Model;
 
 class SQL
 {
+    private $max_items = NULL;
+    private $params = array();
     private $request;
     private $response;
     private $schema;
@@ -16,6 +18,22 @@ class SQL
         $this->request  = $request;
         $this->response = $response;
         $this->schema   = $schema;
+        
+        if (!empty($request->parameters))
+        {
+            $this->params = http_parse_query((string) $request->parameters);
+        }
+        
+        if (isset($this->params['max-items']))
+        {
+            $this->max_items = $this->params['max-items'];
+            unset($this->params['max-items']);
+            
+        }
+        elseif (!empty($this->request->max_items))
+        {
+            $this->max_items = (int) $this->request->max_items;
+        }
     }
     
     public function key($key)
@@ -46,14 +64,9 @@ class SQL
         }
         else
         {
-            if ($this->request->parameters)
+            foreach ($this->params as $field => $value)
             {
-                $parameters = http_parse_query((string) $this->request->parameters);
-                
-                foreach ($parameters as $field => $value)
-                {
-                    $select->where($select->getAdapter()->quoteIdentifier($field) . ' = ' . $select->getAdapter()->quote($value));
-                }
+                $select->where($select->getAdapter()->quoteIdentifier($field) . ' = ' . $select->getAdapter()->quote($value));
             }
             
             $this->search($select);
@@ -150,14 +163,16 @@ class SQL
     
     public function count(&$select)
     {
-        if (!$this->request->max_items)
+        if (is_null($this->max_items))
         {
             return;
         }
         
+        $max_items = $this->max_items;
+        
         $select_count = clone $select;
         $select_count->reset(\Zend_Db_Select::ORDER)->reset(\Zend_Db_Select::COLUMNS)->reset(\Zend_Db_Select::HAVING)->columns(array('row_count' => 'COUNT(*)'));
-        $select->limit($this->request->max_items);
+        $select->limit($max_items);
         
         if ($this->search)
         {
@@ -165,7 +180,7 @@ class SQL
         }
         
         $this->response->total_items    = $select_count->query()->fetch(\Zend_Db::FETCH_OBJ)->row_count;
-        $this->response->items_per_page = $this->request->max_items;
+        $this->response->items_per_page = $max_items;
     }
     
     public function order(&$select)

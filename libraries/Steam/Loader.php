@@ -40,6 +40,13 @@ class Loader
     public static function initialize()
     {
         \Zend_Loader_Autoloader::getInstance()->setDefaultAutoloader(array('\Steam\Loader', 'load'))->registerNamespace('Steam');
+        
+        $libraries = \Steam::config('libraries');
+        
+        foreach ($libraries as $library)
+        {
+            self::register($library, \Steam::path('/libraries/'));
+        }
     }
     
     public static function register($library, $directory = NULL)

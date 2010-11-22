@@ -301,6 +301,8 @@ class Steam
         // activate the autoloader and register the custom autoloader
         \Steam\Loader::initialize();
         
+        \Steam\Loader::register('Minify_', self::path('/libraries/'));
+        
         // initialize error and exception handling
         \Steam\Error::initialize();
         
@@ -520,7 +522,7 @@ class Steam
                 {
                     self::$config['libraries'][] = $library;
                     
-                    \Steam\Loader::register($library, self::$app_base_dir);
+                    \Steam\Loader::register($library, self::app_path('/'));
                 }
             }
             

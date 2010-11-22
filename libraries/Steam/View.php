@@ -37,25 +37,116 @@ class View
     private static $cache = '';
     private static $includes = array();
     private static $css = array();
+    private static $js  = array();
     
     public static function insert($block, $html)
     {
         self::$includes[$block][] = $html;
     }
     
-    public static function css($name)
+    public static function css($name, $media = NULL)
     {
-        if (!in_array($name, self::$css))
+        if (is_null($media))
         {
-            self::$css[] = $name;
+            $media = 'all';
+        }
+        
+        if (!isset(self::$css[$media]))
+        {
+            self::$css[$media] = array();
+        }
+        
+        if (!in_array($name, self::$css[$media]))
+        {
+            self::$css[$media][] = $name;
         }
     }
     
-    private static function get_css()
+    private static function insert_css()
     {
-        sort(self::$css);
+        foreach (self::$css as $media => $css_files)
+        {
+            sort($css_files);
+            
+            $filename = implode('~', $css_files) . '.css';
+            
+            try
+            {
+                $fileinfo = \Steam\Cache::get('_static:cache-file-info', $filename);
+                $fileinfo = unserialize($fileinfo);
+                
+                foreach ($css_files as $css_file)
+                {
+                    $filepath = \Steam::app_path('/static/css/' . $css_file . '.css');
+                    
+                    if (filemtime($filepath) > $fileinfo['last_mod'])
+                    {
+                        throw new \Steam\Exception\Cache();
+                    }
+                }
+                
+                $filepath = $fileinfo['file_path'];
+            }
+            catch (\Steam\Exception\Cache $exception)
+            {
+                $combined_css = '';
+                
+                foreach ($css_files as $css_file)
+                {
+                    $filepath = \Steam::app_path('/static/css/' . $css_file . '.css');
+                    
+                    $css = file_get_contents($filepath);
+                    
+                    $combined_css .= \Minify_CSS_Compressor::process($css) . "\n";
+                    
+                    $css = '';
+                }
+                
+                $filepath = \Steam\StaticResource::uri('/css/~' . md5($combined_css) . '~' . $filename);
+                
+                $cache_file = array(
+                    'file_name'      => $filename,
+                    'file_path'      => $filepath,
+                    'last_mod'       => time(),
+                    'content_type'   => 'text/css',
+                    'content_length' => strlen($combined_css),
+                );
+                
+                \Steam\Cache::set('_static:real-path',       $filepath, 'cache-file:' . $filename);
+                \Steam\Cache::set('_static:cache-file-info', $filename, serialize($cache_file));
+                \Steam\Cache::set('_static:cache-file',      $filename, $combined_css);
+            }
+            
+            self::insert('head', '<link rel="stylesheet" href="' . $filepath . '" media="' . $media . '"/>' . "\n");
+        }
+    }
+    
+    public static function js($name)
+    {
+        if (!in_array($name, self::$js))
+        {
+            self::$js[] = $name;
+        }
+    }
+    
+    private static function insert_js()
+    {
+        $js_files = self::$js;
         
-        return implode('~', self::$css);
+        foreach ($js_files as $js_file)
+        {
+            $first = substr($js_file, 0, 7);
+            
+            if ($js_file[0] == '/' or $first == 'http://' or $first == 'https:/')
+            {
+                self::insert('head', '<script type="text/javascript" src="' . $js_file . '"> </script>' . "\n");
+            }
+            else
+            {
+                self::insert('head', '<script type="text/javascript" src="' . \Steam\StaticResource::uri('/script/' . $js_file . '.js') . '"> </script>' . "\n");
+            }
+        }
+        
     }
     
     public static function cache($instance_id = '')
@@ -161,6 +252,9 @@ class View
         }
         
         unset($_layout);
+        
+        self::insert_js();
+        self::insert_css();
         
         foreach (self::$includes as $_block => $_strings)
         {

@@ -4,7 +4,7 @@
  *
  * This script defines some useful additions to PHP's built-in functions
  *
- * Copyright 2008-2010 Shaddy Zeineddine
+ * Copyright 2008-2009 Shaddy Zeineddine
  *
  * This file is part of Steam, a PHP application framework.
  *
@@ -23,7 +23,7 @@
  *
  * @category Frameworks
  * @package Steam
- * @copyright 2008-2010 Shaddy Zeineddine
+ * @copyright 2008-2009 Shaddy Zeineddine
  * @license http://www.gnu.org/licenses/gpl.txt GPL v3 or later
  * @link http://code.google.com/p/steam-fw
  */
@@ -293,7 +293,7 @@ function file_mimetype($file)
         'jpe'     => 'image/jpeg',
         'jpeg'    => 'image/jpeg',
         'jpg'     => 'image/jpeg',
-        'js'      => 'application/x-javascript',
+        'js'      => 'application/javascript',
         'latex'   => 'application/x-latex',
         'lsf'     => 'video/x-la-asf',
         'lsx'     => 'video/x-la-asf',

@@ -225,6 +225,7 @@ class Query implements \Iterator, \ArrayAccess
             }
             
             $item_element->addChild($name, htmlspecialchars($value));
+            $this->sxe->total_items = (int) $this->sxe->total_items + 1;
         }
     }
     

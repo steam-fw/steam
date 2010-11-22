@@ -32,6 +32,11 @@ namespace Steam\Log\Writer;
 
 class PHP extends \Zend_Log_Writer_Abstract
 {
+    public static function factory($config)
+    {
+        return new self();
+    }
+    
     protected function _write($event)
     {
         if (false === @error_log($event['message']))
