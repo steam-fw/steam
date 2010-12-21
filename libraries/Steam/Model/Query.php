@@ -55,6 +55,11 @@ class Query implements \Iterator, \ArrayAccess
         {
             throw new \Steam\Exception\Type($exception->getMessage());
         }
+        
+        if (!isset($this->sxe->total_items))
+        {
+            $this->sxe->total_items = 0;
+        }
     }
     
     public function __set($name, $value)
@@ -225,8 +230,9 @@ class Query implements \Iterator, \ArrayAccess
             }
             
             $item_element->addChild($name, htmlspecialchars($value));
-            $this->sxe->total_items = (int) $this->sxe->total_items + 1;
         }
+        
+        $this->sxe->total_items = (int) $this->sxe->total_items + 1;
     }
     
     public function get_item($index)
