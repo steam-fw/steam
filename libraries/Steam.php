@@ -244,39 +244,41 @@ class Steam
     public static function load_config()
     {
         // set the default values for all settings
-        $locale        = 'en_US.utf8';
-        $timezone      = 'America/Los_Angeles';
-        $base_uri      = '';
-        $libraries     = '';
-        $logs          = array('php');
-        $error_page    = '';
-        $static_maxage = '30d';
-        $static_path   = 'static';
-        $cache_backend = 'File';
-        $cache_params  = array('cache_dir' => str_replace('libraries/Steam.php', 'cache/', __FILE__));
-        $db_adapter    = '';
-        $db_params     = array();
-        $portals       = array(array('app' => 'sample', 'domain' => '/.*/', 'path' => '/^.*/'));
+        $locale         = 'en_US.utf8';
+        $timezone       = 'America/Los_Angeles';
+        $base_uri       = '';
+        $libraries      = '';
+        $logs           = array('php');
+        $error_page     = '';
+        $static_maxage  = '30d';
+        $static_path    = 'static';
+        $fingerprinting = true;
+        $cache_backend  = 'File';
+        $cache_params   = array('cache_dir' => str_replace('libraries/Steam.php', 'cache/', __FILE__));
+        $db_adapter     = '';
+        $db_params      = array();
+        $portals        = array(array('app' => 'sample', 'domain' => '/.*/', 'path' => '/^.*/'));
         
         // load the global configuration file (replacing default values)
         include str_replace('libraries/Steam.php', 'config.php', __FILE__);
         
         // store the values in the static class variable
         self::$config = array(
-            'base_dir'      => str_replace('libraries/Steam.php', '', __FILE__),
-            'locale'        => $locale,
-            'timezone'      => $timezone,
-            'base_uri'      => $base_uri,
-            'libraries'     => $libraries,
-            'logs'          => $logs,
-            'error_page'    => $error_page,
-            'static_maxage' => $static_maxage,
-            'static_path'   => trim($static_path, '/'),
-            'cache_backend' => $cache_backend,
-            'cache_params'  => $cache_params,
-            'db_adapter'    => $db_adapter,
-            'db_params'     => $db_params,
-            'portals'       => $portals,
+            'base_dir'       => str_replace('libraries/Steam.php', '', __FILE__),
+            'locale'         => $locale,
+            'timezone'       => $timezone,
+            'base_uri'       => $base_uri,
+            'libraries'      => $libraries,
+            'logs'           => $logs,
+            'error_page'     => $error_page,
+            'static_maxage'  => $static_maxage,
+            'static_path'    => trim($static_path, '/'),
+            'fingerprinting' => $fingerprinting,
+            'cache_backend'  => $cache_backend,
+            'cache_params'   => $cache_params,
+            'db_adapter'     => $db_adapter,
+            'db_params'      => $db_params,
+            'portals'        => $portals,
         );
         
         #chdir(self::$config['base_dir']);
@@ -385,6 +387,19 @@ class Steam
             elseif (isset($portal['formatter']) and is_callable($portal['formatter']))
             {
                 $resource_name = $portal['formatter']($request_uri->getPath());
+                
+                $resource = explode('?', $resource_name, 2);
+                
+                if (isset($resource[1]))
+                {
+                    $resource_name = $resource[0];
+                    $request_vars = http_parse_query($resource[1]);
+                    
+                    foreach ($request_vars as $key => $value)
+                    {
+                        $_REQUEST[$key] = $value;
+                    }
+                }
             }
             // otherwise attempt to match the contents of the first ()
             elseif (isset($matches[1]))
@@ -407,6 +422,12 @@ class Steam
             if (!$resource_name and $resource_type == 'view')
             {
                 $resource_name = 'default';
+            }
+            elseif (preg_match('~index\\.(php|html|htm)$~', $resource_name))
+            {
+                self::$response->setRedirect(preg_replace('~index.php$~', '', $resource_name), 303);
+                self::$response->sendResponse();
+                exit;
             }
             
             // don't continue to match portals, match has been found
@@ -489,8 +510,19 @@ class Steam
         
         try
         {
+            // set the current values for settings
+            $locale         = self::$config['locale'];
+            $timezone       = self::$config['timezone'];
+            $base_uri       = self::$config['base_uri'];
+            $error_page     = self::$config['error_page'];
+            $static_maxage  = self::$config['static_maxage'];
+            $static_path    = self::$config['static_path'];
+            $fingerprinting = self::$config['fingerprinting'];
+            
+            // load the application configuration file (replacing current values)
             include_once self::$config['app_dir'] . 'config.php';
             
+            // if additional logs are defined, enable them and update the config var
             if (isset($logs))
             {
                 foreach ($logs as $writer)
@@ -501,21 +533,7 @@ class Steam
                 }
             }
             
-            if (isset($error_page))
-            {
-                self::$config['error_page'] = $error_page;
-            }
-            
-            if (isset($static_maxage))
-            {
-                self::$config['static_maxage'] = $static_maxage;
-            }
-            
-            if (isset($static_path))
-            {
-                self::$config['static_path'] = trim($static_path, '/');
-            }
-            
+            // if additional libraries are defined, add them and update the config var
             if (isset($libraries))
             {
                 foreach ($libraries as $library)
@@ -526,20 +544,19 @@ class Steam
                 }
             }
             
-            if (isset($timezone))
+            // if the timezone changed, update it
+            if ($timezone != self::$config['timezone'])
             {
-                self::$config['timezone'] = $timezone;
-                
                 \Steam\Locale::set_timezone($timezone);
             }
             
-            if (isset($locale))
+            // if the locale changed, update it
+            if ($locale != self::$config['locale'])
             {
-                self::$config['locale'] = $locale;
-                
                 \Steam\Locale::set_locale($locale);
             }
             
+            // if there is a different db adapter, update it
             if (isset($db_adapter) and isset($db_params))
             {
                 self::$config['db_adapter'] = $db_adapter;
@@ -548,10 +565,14 @@ class Steam
                 \Steam\Db::initialize($db_adapter, $db_params);
             }
             
-            if (isset($base_uri))
-            {
-                self::$config['base_uri'] = $base_uri;
-            }
+            // update the settings in the static class variable
+            self::$config['locale']         = $locale;
+            self::$config['timezone']       = $timezone;
+            self::$config['base_uri']       = $base_uri;
+            self::$config['error_page']     = $error_page;
+            self::$config['static_maxage']  = $static_maxage;
+            self::$config['static_path']    = trim($static_path, '/');
+            self::$config['fingerprinting'] = $fingerprinting;
         }
         catch (\Steam\Exception\FileNotFound $exception)
         {

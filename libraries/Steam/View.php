@@ -64,6 +64,30 @@ class View
     
     private static function insert_css()
     {
+        if (!\Steam::config('fingerprinting'))
+        {
+            foreach (self::$css as $media => $css_files)
+            {
+                sort($css_files);
+                
+                foreach ($css_files as $css_file)
+                {
+                    $first = substr($css_file, 0, 7);
+                    
+                    if ($css_file[0] == '/' or $first == 'http://' or $first == 'https:/')
+                    {
+                        self::insert('head', '<link rel="stylesheet" href="' . $css_file . '" media="' . $media . '"/>' . "\n");
+                    }
+                    else
+                    {
+                        self::insert('head', '<link rel="stylesheet" href="' . \Steam\StaticResource::uri('/css/' . $css_file . '.css') . '" media="' . $media . '"/>' . "\n");
+                    }
+                }
+            }
+            
+            return;
+        }
+        
         foreach (self::$css as $media => $css_files)
         {
             sort($css_files);

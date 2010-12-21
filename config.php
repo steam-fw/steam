@@ -126,6 +126,18 @@ $static_maxage = '30d';
 $static_path = 'static';
 
 /**
+ * fingerprinting
+ *
+ * Enables or disables the use of static resource fingerprinting which allows
+ * resource expiration dates to be set to a year in the future and maximize
+ * the browser cache hit rate.
+ *
+ * Default: "false"
+ * Suggestions: "true", "false"
+ */
+$fingerprinting = false;
+
+/**
  * cache_backend
  *
  * Defines the shared data cache which relies upon Zend_Cache.

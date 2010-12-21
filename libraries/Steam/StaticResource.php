@@ -38,6 +38,8 @@ class StaticResource
         // wrap everything in a try to handled errors gracefully
         try
         {
+            $resource = rawurldecode($resource);
+            
             try
             {
                 // Check to see if this resource has been mapped to a different file
@@ -150,6 +152,15 @@ class StaticResource
                 }
             }
         }
+        catch (\Steam\Exception\FileNotFound $exception)
+        {
+            $response->setRawHeader('HTTP/1.1 404 File Not Found', true);
+            $response->sendHeaders();
+            
+            print($exception->getMessage());
+            
+            exit;
+        }
         catch (\Exception $exception)
         {
             $response->setRawHeader('HTTP/1.1 500 Internal Server Error', true);
@@ -161,8 +172,18 @@ class StaticResource
         }
     }
     
+    public static function real_uri($path)
+    {
+        return \Steam::uri('/' . \Steam::config('static_path') . '/' . ltrim($path, '/'));
+    }
+    
     public static function uri($path)
     {
+        if (!\Steam::config('fingerprinting'))
+        {
+            return self::real_uri($path);
+        }
+        
         $filepath = \Steam::app_path('/static/' . $path);
         $fileuri  = \Steam::uri('/' . \Steam::config('static_path') . '/' . ltrim($path, '/'));
         

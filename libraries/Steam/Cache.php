@@ -51,7 +51,7 @@ class Cache
     }
     
     /**
-     * Sets data in memcache using the context and identifier strings as the key.
+     * Sets data in the cache using the context and identifier strings as the key.
      * If data already exists with the same context and identifier, the data is
      * not overwritten. If storing fails, Steam\Exception\Cache is thrown.
      *
@@ -70,7 +70,7 @@ class Cache
     }
     
     /**
-     * Retrieves data from memcache identified by the context and identifier. If
+     * Retrieves data from the cache identified by the context and identifier. If
      * the data does not exist in the cache, Steam\Exception\Cache is thrown.
      *
      * @throws Steam\Exception\Cache
@@ -89,7 +89,7 @@ class Cache
     }
     
     /**
-     * Deletes data from memcache using the context and identifier strings as
+     * Deletes data from the cache using the context and identifier strings as
      * the key. If deletion fails, Steam\Exception\Cache is thrown.
      *
      * @throws Steam\Exception\Cache
@@ -106,7 +106,7 @@ class Cache
     }
     
     /**
-     * Deletes all data from memcache. If flushing fails, Steam\Exception\Cache
+     * Deletes all data from the cache. If flushing fails, Steam\Exception\Cache
      * is thrown.
      *
      * @throws Steam\Exception\Cache
