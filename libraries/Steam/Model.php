@@ -4,7 +4,7 @@
  *
  * This class provides an interface for manipulating stored model/resources.
  *
- * Copyright 2008-2009 Shaddy Zeineddine
+ * Copyright 2008-2010 Shaddy Zeineddine
  *
  * This file is part of Steam, a PHP application framework.
  *
@@ -23,7 +23,7 @@
  *
  * @category Frameworks
  * @package Steam
- * @copyright 2008-2009 Shaddy Zeineddine
+ * @copyright 2008-2010 Shaddy Zeineddine
  * @license http://www.gnu.org/licenses/gpl.txt GPL v3 or later
  * @link http://code.google.com/p/steam-fw
  */
@@ -32,6 +32,13 @@ namespace Steam;
 
 class Model
 {
+    /**
+     * Identifies whether the current request is privileged or not.
+     *
+     * @type boolean
+     */
+    private static $privileged_request = false;
+    
     /**
      * Performs a create model request.
      *
@@ -117,7 +124,6 @@ class Model
     /**
      * Performs a model manipulation request.
      *
-     * @see request
      * @return object Steam\Model\Response
      * @param string $method model method {create, retrieve, update, delete}
      * @param string $resource resource identifier
@@ -178,6 +184,27 @@ class Model
         return $response;
     }
     
+    /**
+     * Performs a privileged model manipulation request which bypasses standard
+     * access controls. This can only be called internally by php scripts to
+     * allow certain methods to be protected from http requests.
+     *
+     * @return object Steam\Model\Response
+     * @param string $method model method {create, retrieve, update, delete}
+     * @param string $resource resource identifier
+     * @param object $query Steam\Model\Query
+     */
+    public static function privileged_request($method, $resource, \Steam\Model\Query $query = NULL)
+    {
+        self::$privileged_request = true;
+        
+        $response = self::request($method, $resource, $query);
+        
+        self::$privileged_request = false;
+        
+        return $response;
+    }
+    
     private static function _request(&$query, &$response)
     {
         try
@@ -194,23 +221,26 @@ class Model
             
             $items = $query->count();
             
-            if ($items > 0)
+            if (!self::$privileged_request)
             {
-                for ($i = 0; $i < $items; $i++)
+                if ($items > 0)
+                {
+                    for ($i = 0; $i < $items; $i++)
+                    {
+                        // check to see if the client is allowed to access the resource
+                        if (!$model_class::is_allowed($query->method, $query[$i]))
+                        {
+                            throw new \Steam\Exception\Access();
+                        }
+                    }
+                }
+                else
                 {
                     // check to see if the client is allowed to access the resource
-                    if (!$model_class::is_allowed($query->method, $query[$i]))
+                    if (!$model_class::is_allowed($query->method))
                     {
                         throw new \Steam\Exception\Access();
                     }
-                }
-            }
-            else
-            {
-                // check to see if the client is allowed to access the resource
-                if (!$model_class::is_allowed($query->method))
-                {
-                    throw new \Steam\Exception\Access();
                 }
             }
             
@@ -259,7 +289,7 @@ class Model
                 }
                 catch (\Steam\Exception\Type $exception)
                 {
-                    $query = new \Steam\Data\Query($_POST);
+                    $query = new \Steam\Model\Query($_POST);
                 }
                 break;
             case 'GET':
@@ -302,22 +332,22 @@ class Model
         return true;
     }
     
-    protected static function _create(\Steam\Data\Query &$query, \Steam\Data\Response &$response)
+    protected static function _create(\Steam\Model\Query &$query, \Steam\Model\Response &$response)
     {
         throw new \Steam\Exception\MethodNotImplemented();
     }
     
-    protected static function _update(\Steam\Data\Query &$query, \Steam\Data\Response &$response)
+    protected static function _update(\Steam\Model\Query &$query, \Steam\Model\Response &$response)
     {
         throw new \Steam\Exception\MethodNotImplemented();
     }
     
-    protected static function _retrieve(\Steam\Data\Query &$query, \Steam\Data\Response &$response)
+    protected static function _retrieve(\Steam\Model\Query &$query, \Steam\Model\Response &$response)
     {
         throw new \Steam\Exception\MethodNotImplemented();
     }
     
-    protected static function _delete(\Steam\Data\Query &$query, \Steam\Data\Response &$response)
+    protected static function _delete(\Steam\Model\Query &$query, \Steam\Model\Response &$response)
     {
         throw new \Steam\Exception\MethodNotImplemented();
     }
