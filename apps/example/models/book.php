@@ -10,9 +10,9 @@ class BookModel extends \Steam\Model
             5 => array('id' => 5, 'title' => 'The Revolution: A Manifesto', 'author' => 'Ron Paul', 'publication_year' => '2008'),
         );
     
-    protected static function _retrieve(\Steam\Model\Query &$query, \Steam\Model\Response &$response)
+    protected static function _retrieve(\Steam\Model\Request &$request, \Steam\Model\Response &$response)
     {
-        $parameters = http_parse_query((string) $query->parameters);
+        $parameters = http_parse_query((string) $request->parameters);
         
         if (isset($parameters['id']))
         {
@@ -41,7 +41,7 @@ class BookModel extends \Steam\Model
         $select = \Steam\Db::read()->select()
             ->from(array('b' => 'books'));
         
-        $parameters = http_parse_query((string) $query->parameters);
+        $parameters = http_parse_query((string) $request->parameters);
         
         foreach ($parameters as $field => $value)
         {
@@ -52,9 +52,9 @@ class BookModel extends \Steam\Model
             }
         }
         
-        $query->parameters = http_build_query($parameters);
+        $request->parameters = http_build_query($parameters);
         
-        $sql = new \Steam\Model\SQL($query, $response);
+        $sql = new \Steam\Model\SQL($request, $response);
         $sql->key('b.book_id');
         $sql->retrieve($select);
         */
