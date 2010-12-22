@@ -14,11 +14,11 @@ class BookModel extends \Steam\Model
     {
         $parameters = http_parse_query((string) $query->parameters);
         
-        if (isset($parameters['book_id']))
+        if (isset($parameters['id']))
         {
-            if (isset(self::$books[$parameters['book_id']]))
+            if (isset(self::$books[$parameters['id']]))
             {
-                $response->add_items(self::$books[$parameters['book_id']]);
+                $response->add_item(self::$books[$parameters['id']]);
             }
         }
         else

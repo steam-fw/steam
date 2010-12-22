@@ -3,10 +3,11 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en-US" lang="en-US">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-        <title><<<title>>></title>
-        <link href="<<<URI:APP>>>/css/default.css" rel="stylesheet" type="text/css" media="all"/>
+        <title><?php print $title ?></title>
+        <link href="<?php print \Steam\StaticResource::uri('/css/default.css') ?>" rel="stylesheet" type="text/css" media="all"/>
     </head>
     <body>
-        <<<content>>>
+        <h1><?php print $title ?></h1>
+        <?php print $content ?>
     </body>
 </html>

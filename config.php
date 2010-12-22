@@ -162,10 +162,10 @@ $cache_params = array();
  * The database adapter to use for all connections. The adapter is used by
  * Zend_Db.
  *
- * Default: "Mysqli"
+ * Default: ""
  * Suggestions: "Mysqli", "Pdo_Pgsql", "Pdo_Sqlite"
  */
-$db_adapter = 'Mysqli';
+$db_adapter = '';
 
 /**
  * db_params

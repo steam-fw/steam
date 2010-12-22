@@ -1,15 +1,19 @@
 <?php
 
-$webpage = new Steam_Web_Page('default.html');
+$template = 'standard';
 
-$webpage->set('title', 'Steam Example Application');
+$books = \Steam\Model::retrieve('book?id=' . $_GET['id']);
 
-$book_data = Steam_Data::retrieve('book/' . Steam_Web::request('id'));
+$text   = array();
+$layout = array();
 
-$book = new Steam_Web_Page_Component('book/view');
-$book->data($book_data);
-$webpage->insert('content', $book);
-
-$webpage->display();
-
+if ((int) $books->status == 200)
+{
+    $text['title']       = $books[0]->title;
+    $layout['content'][] = 'book/view';
+}
+else
+{
+    $text['title']       = 'Book Not Found';
+}
 ?>

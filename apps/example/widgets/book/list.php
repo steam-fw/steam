@@ -1,13 +1,23 @@
 <?php
 
-$html = '<table border="1">';
-$html .= '<thead><tr><th>Title</th><th>Author</th><th>Publication Year</th></tr></thead><tbody>';
-
-foreach ($data as $book)
-{
-    $html .= '<tr><td><a href="' . Steam_Application::uri('book/view?id=' . $book->id) . '">' . $book->title . '</a></td><td>' . $book->author . '</td><td>' . $book->publication_year . '</td></tr>';
-}
-
-return $html . '</tbody></table>';
+$books = \Steam\Model::retrieve('book');
 
 ?>
+<table border="1">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Author</th>
+            <th>Publication Year</th>
+        </tr>
+    </thead>
+    <tbody>
+    <?php foreach ($books as $book) { ?>
+        <tr>
+            <td><a href="<?php print \Steam::uri('/book/view?id=' . $book->id) ?>"><?php print $book->title ?></a></td>
+            <td><?php print $book->author ?></td>
+            <td><?php print $book->publication_year ?></td>
+        </tr>
+    <?php } ?>
+    </tbody>
+</table>

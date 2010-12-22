@@ -332,7 +332,14 @@ class View
             $$_block = &${'_' . $_block};
         }
         
-        @include \Steam::app_path('templates/' . $_template . '.php');
+        try
+        {
+            include \Steam::app_path('templates/' . $_template . '.php');
+        }
+        catch (\Steam\Exception\FileNotFound $exception)
+        {
+            \Steam\Error::display(500, 'Template Not Found');
+        }
     }
 }
 
