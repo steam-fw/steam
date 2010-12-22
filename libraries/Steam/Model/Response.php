@@ -2,7 +2,7 @@
 
 namespace Steam\Model;
 
-class Response extends Query
+class Response extends Request
 {
     
     public function __construct()

@@ -42,7 +42,7 @@ class SQL
     private $secondary = array();
     private $search = '';
     
-    public function __construct(&$request, &$response, $schema = NULL)
+    public function __construct(\Steam\Model\Request &$request, \Steam\Model\Response &$response, $schema = NULL)
     {
         $this->request  = $request;
         $this->response = $response;

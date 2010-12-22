@@ -1,6 +1,6 @@
 <?php
 /**
- * Steam Model Query Class
+ * Steam Model Request Class
  *
  * This class provides a standardized method of requesting model.
  *
@@ -30,7 +30,7 @@
 
 namespace Steam\Model;
 
-class Query implements \Iterator, \ArrayAccess
+class Request implements \Iterator, \ArrayAccess
 {
     protected $sxe;
     protected $index = 0;

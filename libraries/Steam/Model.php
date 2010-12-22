@@ -45,22 +45,22 @@ class Model
      * @see request
      * @return object Steam\Model\Response
      * @param string $resource resource identifier
-     * @param object $query Steam\Model\Query | array item
+     * @param object $request Steam\Model\Request | array item
      */
-    public static function create($resource, $query)
+    public static function create($resource, $request)
     {
-        if (is_array($query))
+        if (is_array($request))
         {
-            $item = $query;
+            $item = $request;
             
-            $query = new \Steam\Model\Query();
+            $request = new \Steam\Model\Request();
             
-            $query->add_item($item);
+            $request->add_item($item);
             
             unset($item);
         }
         
-        $response = self::request('create', $resource, $query);
+        $response = self::request('create', $resource, $request);
         
         return $response;
     }
@@ -71,11 +71,11 @@ class Model
      * @see request
      * @return object Steam\Model\Response
      * @param string $resource resource identifier
-     * @param object $query Steam\Model\Query
+     * @param object $request Steam\Model\Request
      */
-    public static function retrieve($resource, \Steam\Model\Query $query = NULL)
+    public static function retrieve($resource, \Steam\Model\Request $request = NULL)
     {
-        $response = self::request('retrieve', $resource, $query);
+        $response = self::request('retrieve', $resource, $request);
         
         return $response;
     }
@@ -86,22 +86,22 @@ class Model
      * @see request
      * @return object Steam\Model\Response
      * @param string $resource resource identifier
-     * @param object $query Steam\Model\Query | array item
+     * @param object $request Steam\Model\Request | array item
      */
-    public static function update($resource, $query)
+    public static function update($resource, $request)
     {
-        if (is_array($query))
+        if (is_array($request))
         {
-            $item = $query;
+            $item = $request;
             
-            $query = new \Steam\Model\Query();
+            $request = new \Steam\Model\Request();
             
-            $query->add_item($item);
+            $request->add_item($item);
             
             unset($item);
         }
         
-        $response = self::request('update', $resource, $query);
+        $response = self::request('update', $resource, $request);
         
         return $response;
     }
@@ -127,13 +127,13 @@ class Model
      * @return object Steam\Model\Response
      * @param string $method model method {create, retrieve, update, delete}
      * @param string $resource resource identifier
-     * @param object $query Steam\Model\Query
+     * @param object $request Steam\Model\Request
      */
-    public static function request($method, $resource, \Steam\Model\Query $query = NULL)
+    public static function request($method, $resource, \Steam\Model\Request $request = NULL)
     {
-        if (is_null($query))
+        if (is_null($request))
         {
-            $query = new \Steam\Model\Query();
+            $request = new \Steam\Model\Request();
         }
         
         $response = new \Steam\Model\Response();
@@ -144,37 +144,37 @@ class Model
         // the third piece is an optional identifier
         if (preg_match('/^([^\\/\\?]+)(\\/.*)?(\\?.*)?$/', $resource, $resource_components))
         {
-            $query->method     = $method;
-            $query->model_name = $resource_components[1];
+            $request->method     = $method;
+            $request->model_name = $resource_components[1];
             
             if (!empty($resource_components[2]))
             {
-                $query->resource_id = trim($resource_components[2], '/');
+                $request->resource_id = trim($resource_components[2], '/');
             }
             
             if (!empty($resource_components[3]))
             {
-                $query->parameters = ltrim($resource_components[3], '/?');
+                $request->parameters = ltrim($resource_components[3], '/?');
                 
-                switch ($query->count())
+                switch ($request->count())
                 {
                     case 0:
-                        $item = http_parse_query((string) $query->parameters);
-                        $query->add_item($item);
+                        $item = http_parse_query((string) $request->parameters);
+                        $request->add_item($item);
                         break;
                     case 1:
-                        foreach (http_parse_query((string) $query->parameters) as $name => $value)
+                        foreach (http_parse_query((string) $request->parameters) as $name => $value)
                         {
-                            if (!isset($query[0]->{$name}))
+                            if (!isset($request[0]->{$name}))
                             {
-                                $query[0]->{$name} = $value;
+                                $request[0]->{$name} = $value;
                             }
                         }
                         break;
                 }
             }
             
-            self::_request($query, $response);
+            self::_request($request, $response);
         }
         else
         {
@@ -192,34 +192,34 @@ class Model
      * @return object Steam\Model\Response
      * @param string $method model method {create, retrieve, update, delete}
      * @param string $resource resource identifier
-     * @param object $query Steam\Model\Query
+     * @param object $request Steam\Model\Request
      */
-    public static function privileged_request($method, $resource, \Steam\Model\Query $query = NULL)
+    public static function privileged_request($method, $resource, \Steam\Model\Request $request = NULL)
     {
         self::$privileged_request = true;
         
-        $response = self::request($method, $resource, $query);
+        $response = self::request($method, $resource, $request);
         
         self::$privileged_request = false;
         
         return $response;
     }
     
-    private static function _request(&$query, &$response)
+    private static function _request(&$request, &$response)
     {
         try
         {
             // include the script which contains the model manipulation code
-            include_once \Steam::app_path('models/' . $query->model_name . '.php');
+            include_once \Steam::app_path('models/' . $request->model_name . '.php');
             
-            $model_class = ucfirst($query->model_name) . 'Model';
+            $model_class = ucfirst($request->model_name) . 'Model';
             
             if (get_parent_class($model_class) != 'Steam\\Model')
             {
                 throw new \Steam\Exception\General('The model could not be loaded properly.');
             }
             
-            $items = $query->count();
+            $items = $request->count();
             
             if (!self::$privileged_request)
             {
@@ -228,7 +228,7 @@ class Model
                     for ($i = 0; $i < $items; $i++)
                     {
                         // check to see if the client is allowed to access the resource
-                        if (!$model_class::is_allowed($query->method, $query[$i]))
+                        if (!$model_class::is_allowed($request->method, $request[$i]))
                         {
                             throw new \Steam\Exception\Access();
                         }
@@ -237,7 +237,7 @@ class Model
                 else
                 {
                     // check to see if the client is allowed to access the resource
-                    if (!$model_class::is_allowed($query->method))
+                    if (!$model_class::is_allowed($request->method))
                     {
                         throw new \Steam\Exception\Access();
                     }
@@ -245,9 +245,9 @@ class Model
             }
             
             // call the method
-            $method = '_' . $query->method;
+            $method = '_' . $request->method;
             
-            $model_class::$method($query, $response);
+            $model_class::$method($request, $response);
         }
         // if there are access requirements which were not fulfilled
         catch (\Steam\Exception\Access $exception)
@@ -282,38 +282,38 @@ class Model
         {
             case 'POST':
                 $method = 'create';
-                // translate the xml in the request to a query object
+                // translate the xml in the request to a request object
                 try
                 {
-                    $query = new \Steam\Model\Query($request->getRawBody());
+                    $request = new \Steam\Model\Request($request->getRawBody());
                 }
                 catch (\Steam\Exception\Type $exception)
                 {
-                    $query = new \Steam\Model\Query($_POST);
+                    $request = new \Steam\Model\Request($_POST);
                 }
                 break;
             case 'GET':
             case 'HEAD':
                 $method = 'retrieve';
-                // translate the get variables in the request to a query object
-                $query = new \Steam\Model\Query($_GET);
+                // translate the get variables in the request to a request object
+                $request = new \Steam\Model\Request($_GET);
                 break;
             case 'PUT':
                 $method = 'update';
-                // translate the xml in the request to a query object
-                $query = new \Steam\Model\Query($request->getRawBody());
+                // translate the xml in the request to a request object
+                $request = new \Steam\Model\Request($request->getRawBody());
                 break;
             case 'DELETE':
                 $method = 'delete';
-                $query = new \Steam\Model\Query();
+                $request = new \Steam\Model\Request();
                 break;
             default:
                 $method = '';
-                $query = new \Steam\Model\Query();
+                $request = new \Steam\Model\Request();
         }
         
         // perform the actual request
-        $response_xml = \Steam\Model::request($method, $resource_name, $query);
+        $response_xml = \Steam\Model::request($method, $resource_name, $request);
         
         // output the status of the response
         $response->setRawHeader('HTTP/1.1 ' . $response_xml->status . ' ' . \Zend_Http_Response::responseCodeAsText(intval($response_xml->status)));
@@ -332,22 +332,22 @@ class Model
         return true;
     }
     
-    protected static function _create(\Steam\Model\Query &$query, \Steam\Model\Response &$response)
+    protected static function _create(\Steam\Model\Request &$request, \Steam\Model\Response &$response)
     {
         throw new \Steam\Exception\MethodNotImplemented();
     }
     
-    protected static function _update(\Steam\Model\Query &$query, \Steam\Model\Response &$response)
+    protected static function _update(\Steam\Model\Request &$request, \Steam\Model\Response &$response)
     {
         throw new \Steam\Exception\MethodNotImplemented();
     }
     
-    protected static function _retrieve(\Steam\Model\Query &$query, \Steam\Model\Response &$response)
+    protected static function _retrieve(\Steam\Model\Request &$request, \Steam\Model\Response &$response)
     {
         throw new \Steam\Exception\MethodNotImplemented();
     }
     
-    protected static function _delete(\Steam\Model\Query &$query, \Steam\Model\Response &$response)
+    protected static function _delete(\Steam\Model\Request &$request, \Steam\Model\Response &$response)
     {
         throw new \Steam\Exception\MethodNotImplemented();
     }
