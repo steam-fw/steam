@@ -35,6 +35,8 @@ class StaticResource
 {
     public static function display($resource, $request, $response)
     {
+        ini_set('zlib.output_compression', 0);
+        
         // wrap everything in a try to handled errors gracefully
         try
         {
@@ -82,6 +84,7 @@ class StaticResource
                 $content_length = filesize($filepath);
                 $content_type = file_mimetype($filepath);
                 
+                $date = \Zend_Date::now();
                 
                 // if it's not empty, parse and use it
                 if ($maxage)
@@ -125,31 +128,42 @@ class StaticResource
             
             // set the appropriate headers
             $response->setHeader('Last-Modified',  $last_mod, true);
-            $response->setHeader('Content-Length', $content_length, true);
             $response->setHeader('Content-Type',   $content_type, true);
             $response->setHeader('Expires',        $expires, true);
             $response->setHeader('Vary',           'Accept-Encoding', true);
             $response->setHeader('Cache-Control', 'public, max-age=' . $max_age, true);
+            
+            if (isset($cache_file))
+            {
+                $content = \Steam\Cache::get('_static:cache-file', $cache_file['file_name']);
+            }
+            elseif ($content_type == 'application/javascript')
+            {
+                ob_start();
+                include $filepath;
+                $content = ob_get_contents();
+                ob_end_clean();
+            }
+            else
+            {
+                $content = file_get_contents($filepath);
+            }
+            
+            if (stripos($_SERVER['HTTP_ACCEPT_ENCODING'], "gzip") !== false)
+            {
+                $content = gzencode($content);
+                $content_length = strlen($content);
+                $response->setHeader('Content-Encoding', 'gzip', true);
+            }
+            
+            $response->setHeader('Content-Length', $content_length, true);
+            
             $response->sendHeaders();
             
             // if this is a GET request, send the file as well
             if ($request->isGet())
             {
-                if (!isset($cache_file))
-                {
-                    switch ($content_type)
-                    {
-                        case 'application/javascript':
-                            include $filepath;
-                            break;
-                        default:
-                            readfile($filepath);
-                    }
-                }
-                else
-                {
-                    print \Steam\Cache::get('_static:cache-file', $cache_file['file_name']);
-                }
+                print $content;
             }
         }
         catch (\Steam\Exception\FileNotFound $exception)
