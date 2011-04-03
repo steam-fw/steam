@@ -5,7 +5,7 @@
  * This class manages the retrieval of static resources, leveraging
  * browser caching and supoprting resource fingerprinting.
  *
- * Copyright 2008-2010 Shaddy Zeineddine
+ * Copyright 2008-2011 Shaddy Zeineddine
  *
  * This file is part of Steam, a PHP application framework.
  *
@@ -74,6 +74,25 @@ class StaticResource
             
             if (!isset($cache_file))
             {
+                // check if the file exists
+                if (!file_exists($filepath))
+                {
+                    // is it an expired fingerprinted file?
+                    if (preg_match('#/~[0-9a-f]{32}~#', $filepath))
+                    {
+                        $resource = preg_replace('#/~[0-9a-f]{32}~#', '/', $resource);
+                        $response->setRawHeader('HTTP/1.1 301 Moved Permanently', true);
+                        $response->setHeader('Location', \Steam\StaticResource::uri($resource));
+                        $response->sendHeaders();
+                        exit;
+                    }
+                    else
+                    {
+                        throw new \Steam\Exception\FileNotFound();
+                    }
+                }
+                
+                
                 // create and set the file's last modified date
                 $date = new \Zend_Date(filemtime($filepath), \Zend_Date::TIMESTAMP);
                 
