@@ -5,7 +5,7 @@
  * This class inserts widgets into templates and outputs the result to
  * the client as specified in a view.
  *
- * Copyright 2008-2010 Shaddy Zeineddine
+ * Copyright 2008-2011 Shaddy Zeineddine
  *
  * This file is part of Steam, a PHP application framework.
  *
@@ -38,6 +38,7 @@ class View
     private static $includes = array();
     private static $css = array();
     private static $js  = array();
+    private static $widget_id = 0;
     
     public static function insert($block, $html)
     {
@@ -178,6 +179,16 @@ class View
         self::$cache = '~' . $instance_id;
     }
     
+    /**
+     * Returns a unique identifier for the current widget.
+     *
+     * @return int
+     */
+    public static function widget_id()
+    {
+        return self::$widget_id;
+    }
+    
     public static function display($view, $_request, $_response)
     {
         try
@@ -250,6 +261,7 @@ class View
                 
                 foreach ($_widgets as $_widget)
                 {
+                    self::$widget_id++;
                     self::$cache = '';
                     ob_clean();
                     @include \Steam::app_path('widgets/' . $_widget . '.php');
@@ -332,14 +344,7 @@ class View
             $$_block = &${'_' . $_block};
         }
         
-        try
-        {
-            include \Steam::app_path('templates/' . $_template . '.php');
-        }
-        catch (\Steam\Exception\FileNotFound $exception)
-        {
-            \Steam\Error::display(500, 'Template Not Found');
-        }
+        @include \Steam::app_path('templates/' . $_template . '.php');
     }
 }
 
