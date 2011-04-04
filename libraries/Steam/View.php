@@ -39,6 +39,7 @@ class View
     private static $css = array();
     private static $js  = array();
     private static $widget_id = 0;
+    private static $text = array();
     
     public static function insert($block, $html)
     {
@@ -189,6 +190,16 @@ class View
         return self::$widget_id;
     }
     
+    /**
+     *
+     *
+     *
+     */
+    public static function text($key, $value)
+    {
+        self::$text[$key] = $value;
+    }
+    
     public static function display($view, $_request, $_response)
     {
         try
@@ -311,6 +322,8 @@ class View
         unset($_string);
         unset($_strings);
         self::$includes = array();
+        $_text = array_merge($_text, self::$text);
+        self::$text = array();
         
         foreach ($_text as $_block => $_string)
         {
