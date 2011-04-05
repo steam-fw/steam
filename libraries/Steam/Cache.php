@@ -47,22 +47,7 @@ class Cache
      */
     public static function initialize($backend, $params)
     {
-        try
-        {
-            self::$cache = \Zend_Cache::factory('Core', $backend, array('automatic_serialization' => true), $params);
-            
-            // configure Zend_Date, Zend_Locale and Zend_Translate to use the cache
-            \Zend_Date::setOptions(array('cache' => self::$cache));
-            \Zend_Locale::setCache(self::$cache);
-            \Zend_Translate::setCache(self::$cache);
-            
-            // configure Zend_Session to use a custom cache based save handler
-            \Zend_Session::setSaveHandler(new \Steam\Session());
-        }
-        catch (\Zend_Cache_Exception $exception)
-        {
-            self::$cache = new \Steam\Cache\Dummy();
-        }
+        self::$cache = \Zend_Cache::factory('Core', $backend, array('automatic_serialization' => true), $params);
     }
     
     /**

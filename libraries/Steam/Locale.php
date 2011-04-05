@@ -51,6 +51,11 @@ class Locale
         date_default_timezone_set($timezone);
         \Zend_Locale::setDefault($locale);
         
+        // configure Zend_Date, Zend_Locale and Zend_Translate to use the cache
+        \Zend_Date::setOptions(array('cache' => \Steam\Cache::get_cache()));
+        \Zend_Locale::setCache(\Steam\Cache::get_cache());
+        \Zend_Translate::setCache(\Steam\Cache::get_cache());
+        
         // store Zend_Locale in the registry after 
         \Zend_Registry::set('\Zend_Locale', new \Zend_Locale($locale));
         

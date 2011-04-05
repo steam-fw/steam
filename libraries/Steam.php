@@ -325,6 +325,9 @@ class Steam
         // initialize localization support
         \Steam\Locale::initialize(self::$config['locale'], self::$config['timezone']);
         
+        // configure Zend_Session to use a custom cache based save handler
+        \Zend_Session::setSaveHandler(new \Steam\Session());
+        
         if (self::$config['db_adapter'])
         {
             // initialize the database with the configured adapter and parameters
