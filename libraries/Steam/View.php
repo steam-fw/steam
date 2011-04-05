@@ -36,8 +36,10 @@ class View
 {
     private static $cache = '';
     private static $includes = array();
-    private static $css = array();
-    private static $js  = array();
+    private static $internal_css = array();
+    private static $external_css = array();
+    private static $internal_js  = array();
+    private static $external_js  = array();
     private static $widget_id = 0;
     private static $text = array();
     
@@ -53,44 +55,52 @@ class View
             $media = 'all';
         }
         
-        if (!isset(self::$css[$media]))
+        $first = substr($name, 0, 7);
+        
+        if ($name[0] == '/' or $first == 'http://' or $first == 'https:/')
         {
-            self::$css[$media] = array();
+            $css =& self::$external_css;
+        }
+        else
+        {
+            $css =& self::$internal_css;
         }
         
-        if (!in_array($name, self::$css[$media]))
+        if (!isset($css[$media]))
         {
-            self::$css[$media][] = $name;
+            $css[$media] = array();
+        }
+        
+        if (!in_array($name, $css[$media]))
+        {
+            $css[$media][] = $name;
         }
     }
     
     private static function insert_css()
     {
+        foreach (self::$external_css as $media => $css_files)
+        {
+            foreach ($css_files as $css_file)
+            {
+                self::insert('head', '<link rel="stylesheet" href="' . $css_file . '" media="' . $media . '"/>' . "\n");
+            }
+        }
+        
         if (!\Steam::config('fingerprinting'))
         {
-            foreach (self::$css as $media => $css_files)
+            foreach (self::$internal_css as $media => $css_files)
             {
-                sort($css_files);
-                
                 foreach ($css_files as $css_file)
                 {
-                    $first = substr($css_file, 0, 7);
-                    
-                    if ($css_file[0] == '/' or $first == 'http://' or $first == 'https:/')
-                    {
-                        self::insert('head', '<link rel="stylesheet" href="' . $css_file . '" media="' . $media . '"/>' . "\n");
-                    }
-                    else
-                    {
-                        self::insert('head', '<link rel="stylesheet" href="' . \Steam\StaticResource::uri('/css/' . $css_file . '.css') . '" media="' . $media . '"/>' . "\n");
-                    }
+                    self::insert('head', '<link rel="stylesheet" href="' . \Steam\StaticResource::uri('/css/' . $css_file . '.css') . '" media="' . $media . '"/>' . "\n");
                 }
             }
             
             return;
         }
         
-        foreach (self::$css as $media => $css_files)
+        foreach (self::$internal_css as $media => $css_files)
         {
             sort($css_files);
             
@@ -149,28 +159,33 @@ class View
     
     public static function js($name)
     {
-        if (!in_array($name, self::$js))
+        $first = substr($name, 0, 7);
+        
+        if ($name[0] == '/' or $first == 'http://' or $first == 'https:/')
         {
-            self::$js[] = $name;
+            $js =& self::$external_js;
+        }
+        else
+        {
+            $js =& self::$internal_js;
+        }
+        
+        if (!in_array($name, $js))
+        {
+            $js[] = $name;
         }
     }
     
     private static function insert_js()
     {
-        $js_files = self::$js;
-        
-        foreach ($js_files as $js_file)
+        foreach (self::$external_js as $js_file)
         {
-            $first = substr($js_file, 0, 7);
-            
-            if ($js_file[0] == '/' or $first == 'http://' or $first == 'https:/')
-            {
-                self::insert('head', '<script type="text/javascript" src="' . $js_file . '"> </script>' . "\n");
-            }
-            else
-            {
-                self::insert('head', '<script type="text/javascript" src="' . \Steam\StaticResource::uri('/script/' . $js_file . '.js') . '"> </script>' . "\n");
-            }
+            self::insert('head', '<script type="text/javascript" src="' . $js_file . '"> </script>' . "\n");
+        }
+        
+        foreach (self::$internal_js as $js_file)
+        {
+            self::insert('head', '<script type="text/javascript" src="' . \Steam\StaticResource::uri('/script/' . $js_file . '.js') . '"> </script>' . "\n");
         }
         
     }
