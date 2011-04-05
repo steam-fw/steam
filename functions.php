@@ -413,6 +413,9 @@ function file_mimetype($file)
         'xwd'     => 'image/x-xwindowdump',
         'z'       => 'application/x-compress',
         'zip'     => 'application/zip',
+        'ogg'     => 'application/ogg',
+        'ttf'     => 'font/ttf',
+        'otf'     => 'font/opentype',
     );
     
     $ext = substr($file, 1 + strrpos($file, '.'));
