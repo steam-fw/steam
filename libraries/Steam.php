@@ -294,6 +294,9 @@ class Steam
      */
     public static function initialize()
     {
+        // temporarily set the timezone to prevent errors
+        date_default_timezone_set('UTC');
+        
         // add the Steam library path to the include path
         set_include_path(self::$config['base_dir'] . 'libraries' . PATH_SEPARATOR . get_include_path());
         
