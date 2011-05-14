@@ -253,7 +253,7 @@ class Steam
         $static_maxage  = '30d';
         $static_path    = 'static';
         $fingerprinting = true;
-        $cache_backend  = 'File';
+        $cache_backend  = '';
         $cache_params   = array('cache_dir' => str_replace('libraries/Steam.php', 'cache/', __FILE__));
         $db_adapter     = '';
         $db_params      = array();
@@ -322,14 +322,17 @@ class Steam
             \Steam\Logger::enable($writer);
         }
         
-        // initialize caching with the configured backend and parameters
-        \Steam\Cache::initialize(self::$config['cache_backend'], self::$config['cache_params']);
+        if (self::$config['cache_backend'])
+        {
+            // initialize caching with the configured backend and parameters
+            \Steam\Cache::initialize(self::$config['cache_backend'], self::$config['cache_params']);
+            
+            // configure Zend_Session to use a custom cache based save handler
+            \Zend_Session::setSaveHandler(new \Steam\Session());
+        }
         
         // initialize localization support
         \Steam\Locale::initialize(self::$config['locale'], self::$config['timezone']);
-        
-        // configure Zend_Session to use a custom cache based save handler
-        \Zend_Session::setSaveHandler(new \Steam\Session());
         
         if (self::$config['db_adapter'])
         {

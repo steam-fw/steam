@@ -102,8 +102,10 @@ class Logger
      * @param string $message log message
      * @param integer $priority  message priority
      */
-    public static function log($message, $priority)
+    public static function log($message, $priority = NULL)
     {
+        if (is_null($priority)) $priority = \Zend_Log::INFO;
+        
         return self::$logger->log($message, $priority);
     }
 }
