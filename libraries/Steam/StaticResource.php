@@ -150,7 +150,8 @@ class StaticResource
             $response->setHeader('Content-Type',   $content_type, true);
             $response->setHeader('Expires',        $expires, true);
             $response->setHeader('Vary',           'Accept-Encoding', true);
-            $response->setHeader('Cache-Control', 'public, max-age=' . $max_age, true);
+            $response->setHeader('Cache-Control',  'public, max-age=' . $max_age, true);
+            $response->setHeader('Accept-Ranges',  'bytes');
             
             if (isset($cache_file))
             {
@@ -168,7 +169,25 @@ class StaticResource
                 $content = file_get_contents($filepath);
             }
             
-            if (isset($_SERVER['HTTP_ACCEPT_ENCODING']) and stripos($_SERVER['HTTP_ACCEPT_ENCODING'], "gzip") !== false)
+            if ($range = $request->getHeader('Range') and preg_match('~^([a-zA-Z]+)=(-?[0-9]+)(-[0-9]*)?~', $range, $matches))
+            {
+                $range_unit  = strtolower($matches[1]);
+                
+                if ($range_unit == 'bytes')
+                {
+                    $range_start = (int) $matches[2];
+                    $range_end   = (int) (isset($matches[3]) and $matches[3] != '-') ? substr($matches[3], 1) : $content_length;
+                    
+                    if ($range_start < 0) $range_start += $content_length;
+                    
+                    $response->setRawHeader('HTTP/1.1 206 Partial Content', true);
+                    $response->setHeader('Content-Range',  'bytes ' . $range_start . '-' . $range_end . '/' . $content_length);
+                    
+                    $content = substr($content, $range_start, $range_end - $range_start);
+                    $content_length = strlen($content);
+                }
+            }
+            elseif (isset($_SERVER['HTTP_ACCEPT_ENCODING']) and stripos($_SERVER['HTTP_ACCEPT_ENCODING'], "gzip") !== false)
             {
                 $content = gzencode($content);
                 $content_length = strlen($content);
