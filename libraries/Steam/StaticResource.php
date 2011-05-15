@@ -187,7 +187,8 @@ class StaticResource
                     $content_length = strlen($content);
                 }
             }
-            elseif (isset($_SERVER['HTTP_ACCEPT_ENCODING']) and stripos($_SERVER['HTTP_ACCEPT_ENCODING'], "gzip") !== false)
+            
+            if (isset($_SERVER['HTTP_ACCEPT_ENCODING']) and stripos($_SERVER['HTTP_ACCEPT_ENCODING'], "gzip") !== false)
             {
                 $content = gzencode($content);
                 $content_length = strlen($content);
