@@ -5,7 +5,7 @@
  * This class replaces the built-in PHP session handler with a custom one with a
  * Memcache back end.
  *
- * Copyright 2008-2009 Shaddy Zeineddine
+ * Copyright 2008-2011 Shaddy Zeineddine
  *
  * This file is part of Steam, a PHP application framework.
  *
@@ -24,7 +24,7 @@
  *
  * @category Frameworks
  * @package Steam
- * @copyright 2008-2009 Shaddy Zeineddine
+ * @copyright 2008-2011 Shaddy Zeineddine
  * @license http://www.gnu.org/licenses/gpl.txt GPL v3 or later
  * @link http://code.google.com/p/steam-fw
  */
@@ -33,59 +33,121 @@ namespace Steam;
 
 class Session implements \Zend_Session_SaveHandler_Interface
 {
+    /**
+     * The length of time which cached data should persist.
+     *
+     * @var int seconds
+     */
     protected $lifetime;
     
+    /**
+     * Stores any important configuration settings.
+     *
+     * @return void
+     */
     public function __construct()
     {
         $this->lifetime = ini_get('session.gc_maxlifetime');
     }
     
+    /**
+     * Ensures session data is committed.
+     *
+     * @return void
+     */
+    public function __destruct()
+    {
+        \Zend_Session::writeClose();
+    }
+    
+    /**
+     * Opens a session
+     *
+     * @return bool
+     */
     public function open($save_path, $session_name)
     {
         return true;
     }
     
+    /**
+     * Closes a session
+     *
+     * @return bool
+     */
     public function close()
     {
         return true;
     }
     
+    /**
+     * Retrieves session data.
+     *
+     * @return string
+     */
     public function read($session_id)
     {
         try
         {
-            return \Steam\Cache::get('_session', $session_id);
+            $data = \Steam\Cache::get('_session', $session_id);
+            
+            return $data;
         }
         catch (\Steam\Exception\Cache $exception)
         {
-            session_regenerate_id();
+            \Steam\Error::log_exception($exception);
+            
+            return '';
         }
     }
     
+    /**
+     * Writes session data.
+     *
+     * @return bool
+     */
     public function write($session_id, $session_data)
     {
-        if (\Steam\Cache::set('_session', $session_id, $session_data, $this->lifetime))
+        try
         {
+            \Steam\Cache::set('_session', $session_id, $session_data, $this->lifetime)
+            
             return true;
         }
-        else
+        catch (\Steam\Exception\Cache $exception)
         {
+            \Steam\Error::log_exception($exception);
+            
             return false;
         }
     }
     
+    /**
+     * Deletes all data associated with a session.
+     *
+     * @return bool
+     */
     public function destroy($session_id)
     {
-        if (\Steam\Cache::delete('_session', $session_id))
+        try
         {
+            \Steam\Cache::delete('_session', $session_id)
+            
             return true;
         }
-        else
+        catch (\Steam\Exception\Cache $exception)
         {
+            \Steam\Error::log_exception($exception);
+            
             return false;
         }
     }
     
+    /**
+     * Triggers garbage collection
+     *
+     * @return bool
+     */
     public function gc($max_lifetime)
     {
         return true;
