@@ -56,10 +56,12 @@ class Request implements \Iterator, \ArrayAccess
             throw new \Steam\Exception\Type($exception->getMessage());
         }
         
-        if (!isset($this->sxe->total_items))
-        {
-            $this->sxe->total_items = 0;
-        }
+        if (!isset($this->sxe->response_format)) $this->sxe->response_format = 'xml';
+        if (!isset($this->sxe->total_results  )) $this->sxe->total_results   = 0;
+        if (!isset($this->sxe->total_items    )) $this->sxe->total_items     = 0;
+        if (!isset($this->sxe->max_items      )) $this->sxe->max_items       = 0;
+        if (!isset($this->sxe->start_index    )) $this->sxe->start_index     = 1;
+        if (!isset($this->sxe->items          )) $this->sxe->addChild('items');
     }
     
     public function __set($name, $value)
@@ -124,7 +126,7 @@ class Request implements \Iterator, \ArrayAccess
     
     public function offsetGet($index)
     {
-        return $this->sxe->items->item[$index];
+        return $this->xml_to_std($this->sxe->items->item[$index]);
     }
     
     public function offsetSet($index, $value)
@@ -143,6 +145,32 @@ class Request implements \Iterator, \ArrayAccess
         $xml .= self::xml_element('data', $array);
         
         return $xml;
+    }
+    
+    protected function xml_to_std($sxe)
+    {
+        $item = new stdClass();
+        
+        foreach ($sxe as $name => $data)
+        {
+            $count = count($data);
+            
+            if ($count > 0)
+            {
+                $item->{$name} = array();
+                
+                foreach ($data as $value)
+                {
+                    $item->{$name}[] = (string) $value;
+                }
+            }
+            else
+            {
+                $item->{$name} = (string) $data;
+            }
+        }
+        
+        return $item;
     }
     
     private function xml_element($name, $value, $tags = true)
@@ -196,11 +224,6 @@ class Request implements \Iterator, \ArrayAccess
     
     public function add_item($item)
     {
-        if (!isset($this->sxe->items))
-        {
-            $this->sxe->addChild('items');
-        }
-        
         $item_element = $this->sxe->items->addChild('item');
         
         foreach ($item as $name => $value)
@@ -243,6 +266,14 @@ class Request implements \Iterator, \ArrayAccess
     public function next_item()
     {
         return $this->next();
+    }
+    
+    public function asJSON()
+    {
+    }
+    
+    public function asJSONP()
+    {
     }
     
     public function __toString()

@@ -142,17 +142,19 @@ class Model
         // the first piece of the identifier is the app name
         // the second piece is the name of the resource
         // the third piece is an optional identifier
-        if (preg_match('/^([^\\/\\?]+)(\\/.*)?(\\?.*)?$/', $resource, $resource_components))
+        if (preg_match('~^(/?[^/?]+)(/[^?]*)?(\\?.*)?$~', $resource, $resource_components))
         {
             $request->method     = $method;
             $request->model_name = $resource_components[1];
             
-            if (!empty($resource_components[2]))
+            // the model is located in another application
+            if (isset($resource_components[2]) and !empty($resource_components[2]))
             {
-                $request->resource_id = trim($resource_components[2], '/');
+                $request->application = trim($resource_components[1], '/');
+                $request->model_name  = trim($resource_components[2], '/');
             }
             
-            if (!empty($resource_components[3]))
+            if (isset($resource_components[2]) and !empty($resource_components[3]))
             {
                 $request->parameters = ltrim($resource_components[3], '/?');
                 
@@ -210,7 +212,7 @@ class Model
         try
         {
             // include the script which contains the model manipulation code
-            include_once \Steam::app_path('models/' . $request->model_name . '.php');
+            include_once \Steam::path('apps/' . $request->application . '/models/' . $request->model_name . '.php');
             
             $model_class = ucfirst($request->model_name) . 'Model';
             
@@ -318,9 +320,28 @@ class Model
         // output the status of the response
         $response->setRawHeader('HTTP/1.1 ' . $response_xml->status . ' ' . \Zend_Http_Response::responseCodeAsText(intval($response_xml->status)));
         
-        // output an xml representation of the data
-        $response->setHeader('Content-Type', 'text/xml; charset=utf-8');
-        $response->setBody($response_xml->asXML());
+        switch ($request->response_format)
+        {
+            case 'xml':
+                // output an xml representation of the data
+                $response->setHeader('Content-Type', 'text/xml; charset=utf-8');
+                $response->setBody($response_xml->asXML());
+                break;
+            case 'json':
+                // output an xml representation of the data
+                $response->setHeader('Content-Type', 'text/javascript; charset=utf-8');
+                $response->setBody($response_xml->asJSON());
+                break;
+            case 'jsonp':
+                // output an xml representation of the data
+                $response->setHeader('Content-Type', 'text/javascript; charset=utf-8');
+                $response->setBody($response_xml->asJSONP());
+                break;
+            default:
+                // output an xml representation of the data
+                $response->setHeader('Content-Type', 'text/xml; charset=utf-8');
+                $response->setBody($response_xml->asFormat($request->response_format));
+        }
         
         \Steam\Event::trigger('steam-response');
         
