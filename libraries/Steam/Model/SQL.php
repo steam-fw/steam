@@ -4,7 +4,7 @@
  *
  * This class simplifies retrieval from SQL databases
  *
- * Copyright 2008-2010 Shaddy Zeineddine
+ * Copyright 2008-2011 Shaddy Zeineddine
  *
  * This file is part of Steam, a PHP application framework.
  *
@@ -23,7 +23,7 @@
  *
  * @category Frameworks
  * @package Steam
- * @copyright 2008-2010 Shaddy Zeineddine
+ * @copyright 2008-2011 Shaddy Zeineddine
  * @license http://www.gnu.org/licenses/gpl.txt GPL v3 or later
  * @link http://code.google.com/p/steam-fw
  */
@@ -32,8 +32,11 @@ namespace Steam\Model;
 
 class SQL
 {
-    private $max_items = NULL;
-    private $order_by  = NULL;
+    private $start_index = NULL;
+    private $max_results = NULL;
+    private $sort_field  = NULL;
+    private $sort_order  = NULL;
+    
     private $params = array();
     private $request;
     private $response;
@@ -53,24 +56,44 @@ class SQL
             $this->params = http_parse_query((string) $request->parameters);
         }
         
-        if (isset($this->params['max-items']))
+        if (isset($this->params['start-index']))
         {
-            $this->max_items = $this->params['max-items'];
-            unset($this->params['max-items']);
+            $this->start_index = $this->params['start-index'];
+            unset($this->params['start-index']);
         }
-        elseif (!empty($this->request->max_items))
+        elseif (!empty($this->request->start_index))
         {
-            $this->max_items = (int) $this->request->max_items;
+            $this->start_index = (int) $this->request->start_index;
         }
         
-        if (isset($this->params['order-by']))
+        if (isset($this->params['max-results']))
         {
-            $this->order_by = $this->params['order-by'];
-            unset($this->params['order-by']);
+            $this->max_results = $this->params['max-results'];
+            unset($this->params['max-results']);
         }
-        elseif (!empty($this->request->order_by))
+        elseif (!empty($this->request->max_results))
         {
-            $this->order_by = (int) $this->request->order_by;
+            $this->max_results = (int) $this->request->max_results;
+        }
+        
+        if (isset($this->params['sort-field']))
+        {
+            $this->sort_field = $this->params['sort-field'];
+            unset($this->params['sort-field']);
+        }
+        elseif (!empty($this->request->sort_field))
+        {
+            $this->sort_field = (string) $this->request->sort_field;
+        }
+        
+        if (isset($this->params['sort-order']))
+        {
+            $this->sort_order = $this->params['sort-order'];
+            unset($this->params['sort-order']);
+        }
+        elseif (!empty($this->request->sort_order))
+        {
+            $this->sort_order = (string) $this->request->sort_order;
         }
     }
     
@@ -201,16 +224,25 @@ class SQL
     
     public function count(&$select)
     {
-        if (is_null($this->max_items))
+        if (is_null($this->max_results))
         {
             return;
         }
         
-        $max_items = $this->max_items;
+        $max_results = $this->max_results;
         
         $select_count = clone $select;
         $select_count->reset(\Zend_Db_Select::ORDER)->reset(\Zend_Db_Select::COLUMNS)->reset(\Zend_Db_Select::HAVING)->columns(array('row_count' => 'COUNT(*)'));
-        $select->limit($max_items);
+        
+        if (is_null($this->start_index))
+        {
+            $select->limit($max_results);
+        }
+        else
+        {
+            $page = ((int) ($this->start_index / $max_results)) + 1;
+            $select->limitPage($page, $max_results);
+        }
         
         if ($this->search)
         {
@@ -218,18 +250,27 @@ class SQL
         }
         
         $this->response->total_items    = $select_count->query()->fetch(\Zend_Db::FETCH_OBJ)->row_count;
-        $this->response->items_per_page = $max_items;
+        $this->response->items_per_page = $max_results;
     }
     
     public function order(&$select)
     {
-        if (is_null($this->order_by))
+        if (is_null($this->sort_field))
         {
             return;
         }
         
+        if (is_null($this->sort_field) or (string) $this->sort_order != 'dsc')
+        {
+            $sort_order = 'ASC';
+        }
+        else
+        {
+            $sort_order = 'DESC';
+        }
+        
         $select->reset(\Zend_Db_Select::ORDER);
-        $select->order(explode(',', (string) $this->order_by));
+        $select->order((string) $this->sort_field, $sort_order);
     }
     
     private function add_results(&$select)
