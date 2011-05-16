@@ -153,6 +153,10 @@ class Model
                 $request->application = trim($resource_components[1], '/');
                 $request->model_name  = trim($resource_components[2], '/');
             }
+            else
+            {
+                $request->application = \Steam::app();
+            }
             
             if (isset($resource_components[2]) and !empty($resource_components[3]))
             {

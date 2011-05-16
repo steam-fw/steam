@@ -149,7 +149,7 @@ class Request implements \Iterator, \ArrayAccess
     
     protected function xml_to_std($sxe)
     {
-        $item = new stdClass();
+        $item = new \stdClass();
         
         foreach ($sxe as $name => $data)
         {

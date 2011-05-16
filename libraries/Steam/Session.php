@@ -110,7 +110,7 @@ class Session implements \Zend_Session_SaveHandler_Interface
     {
         try
         {
-            \Steam\Cache::set('_session', $session_id, $session_data, $this->lifetime)
+            \Steam\Cache::set('_session', $session_id, $session_data, $this->lifetime);
             
             return true;
         }
@@ -131,7 +131,7 @@ class Session implements \Zend_Session_SaveHandler_Interface
     {
         try
         {
-            \Steam\Cache::delete('_session', $session_id)
+            \Steam\Cache::delete('_session', $session_id);
             
             return true;
         }
