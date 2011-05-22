@@ -161,23 +161,6 @@ class Model
             if (isset($resource_components[2]) and !empty($resource_components[3]))
             {
                 $request->parameters = ltrim($resource_components[3], '/?');
-                
-                switch ($request->count())
-                {
-                    case 0:
-                        $item = http_parse_query((string) $request->parameters);
-                        $request->add_item($item);
-                        break;
-                    case 1:
-                        foreach (http_parse_query((string) $request->parameters) as $name => $value)
-                        {
-                            if (!isset($request[0]->{$name}))
-                            {
-                                $request[0]->{$name} = $value;
-                            }
-                        }
-                        break;
-                }
             }
             
             self::_request($request, $response);
@@ -328,23 +311,41 @@ class Model
         {
             case 'xml':
                 // output an xml representation of the data
-                $response->setHeader('Content-Type', 'text/xml; charset=utf-8');
+                $response->setHeader('Content-Type', 'text/xml; charset=utf-8', true);
                 $response->setBody($response_xml->asXML());
                 break;
             case 'json':
                 // output an xml representation of the data
-                $response->setHeader('Content-Type', 'text/javascript; charset=utf-8');
+                $response->setHeader('Content-Type', 'text/javascript; charset=utf-8', true);
                 $response->setBody($response_xml->asJSON());
                 break;
             case 'jsonp':
                 // output an xml representation of the data
-                $response->setHeader('Content-Type', 'text/javascript; charset=utf-8');
-                $response->setBody($response_xml->asJSONP());
+                $callback = (isset($_REQUEST['jsonp'])) ? $_REQUEST['jsonp'] : 'jsonp';
+                $response->setHeader('Content-Type', 'text/javascript; charset=utf-8', true);
+                $response->setBody($response_xml->asJSONP($callback));
                 break;
             default:
-                // output an xml representation of the data
-                $response->setHeader('Content-Type', 'text/xml; charset=utf-8');
-                $response->setBody($response_xml->asFormat($request->response_format));
+                // output a custom representation of the data
+                if (preg_match('~^([^(]*)\\((.*)\\)$~', $request->response_format, $matches))
+                {
+                    $response->setHeader('Content-Type', 'text/plain; charset=utf-8', true);
+                    
+                    if (empty($matches[2]))
+                    {
+                        $response->setBody(call_user_func($matches[1], $response_xml));
+                    }
+                    else
+                    {
+                        $response->setBody(call_user_func($matches[1], $matches[2], $response_xml));
+                    }
+                }
+                else
+                {
+                    // fallback to XML output
+                    $response->setHeader('Content-Type', 'text/xml; charset=utf-8', true);
+                    $response->setBody($response_xml->asXML());
+                }
         }
         
         \Steam\Event::trigger('steam-response');
@@ -380,7 +381,6 @@ class Model
     public static function shutdown()
     {
     }
-    
 }
 
 ?>
