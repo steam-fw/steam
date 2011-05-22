@@ -93,6 +93,13 @@ $resource_name = $temp[0];
 if (isset($temp[1]))
 {
     $_SERVER['QUERY_STRING'] = $temp[1];
+    
+    parse_str($_SERVER['QUERY_STRING'], $_GET);
+    
+    foreach ($_GET as $name => $value)
+    {
+        $_REQUEST[$name] = $value;
+    }
 }
 else
 {
