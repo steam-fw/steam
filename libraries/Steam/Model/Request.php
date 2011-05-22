@@ -106,7 +106,7 @@ class Request implements \Iterator, \ArrayAccess
     
     public function next()
     {
-        return $this->offsetGet($this->index++);
+        $this->index++;
     }
     
     public function rewind()
@@ -126,7 +126,7 @@ class Request implements \Iterator, \ArrayAccess
     
     public function offsetGet($index)
     {
-        return $this->xml_to_std($this->sxe->items->item[$index]);
+        return $this->sxe->items->item[$index];
     }
     
     public function offsetSet($index, $value)
@@ -147,7 +147,7 @@ class Request implements \Iterator, \ArrayAccess
         return $xml;
     }
     
-    protected function xml_to_std($sxe)
+    public function xml_to_std($sxe)
     {
         $item = new \stdClass();
         
@@ -268,12 +268,39 @@ class Request implements \Iterator, \ArrayAccess
         return $this->next();
     }
     
-    public function asJSON()
+    /**
+     * Helper method for getting/setting the parameters from the request.
+     *
+     * @param array parameters
+     * @return void|array parameters
+     */
+    public function parameters($parameters = NULL)
     {
+        if (is_array($parameters))
+        {
+            $this->sxe->parameters = http_build_query($parameters);
+        }
+        else
+        {
+            $item = array();
+            
+            if ($this->offsetExists(0))
+            {
+                $item = (array) $this->offsetGet(0);
+            }
+            
+            return array_merge(http_parse_query((string) $this->sxe->parameters), $item);
+        }
     }
     
-    public function asJSONP()
+    public function asJSON()
     {
+        return '';
+    }
+    
+    public function asJSONP($callback)
+    {
+        return $callback . '(' . $this->asJSON() . ')';
     }
     
     public function __toString()
