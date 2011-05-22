@@ -24,7 +24,7 @@
  *
  * @category Frameworks
  * @package Steam
- * @copyright 2008-2010 Shaddy Zeineddine
+ * @copyright 2008-2011 Shaddy Zeineddine
  * @license http://www.gnu.org/licenses/gpl.txt GPL v3 or later
  * @link http://code.google.com/p/steam-fw
  */

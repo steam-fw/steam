@@ -4,7 +4,7 @@
  *
  * Stores the values for the basic configuration of Steam.
  *
- * Copyright 2008-2010 Shaddy Zeineddine
+ * Copyright 2008-2011 Shaddy Zeineddine
  *
  * This file is part of Steam, a PHP application framework.
  *
@@ -23,7 +23,7 @@
  *
  * @category Frameworks
  * @package Steam
- * @copyright 2008-2010 Shaddy Zeineddine
+ * @copyright 2008-2011 Shaddy Zeineddine
  * @license http://www.gnu.org/licenses/gpl.txt GPL v3 or later
  * @link http://code.google.com/p/steam-fw
  */
@@ -182,7 +182,7 @@ $db_params        = array(
             'socket'   => '/var/run/mysqld/mysqld.sock',
             'username' => 'root',
             'password' => '',
-            'dbname'   => 'epcc',
+            'dbname'   => 'database',
             'adapterNamespace' => 'Steam_Db_Adapter'
             ),
     ),

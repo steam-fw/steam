@@ -2,9 +2,9 @@
 /**
  * Steam Model Request Class
  *
- * This class provides a standardized method of requesting model.
+ * This class provides a standardized method of requesting models.
  *
- * Copyright 2008-2010 Shaddy Zeineddine
+ * Copyright 2008-2011 Shaddy Zeineddine
  *
  * This file is part of Steam, a PHP application framework.
  *
@@ -23,7 +23,7 @@
  *
  * @category Frameworks
  * @package Steam
- * @copyright 2008-2010 Shaddy Zeineddine
+ * @copyright 2008-2011 Shaddy Zeineddine
  * @license http://www.gnu.org/licenses/gpl.txt GPL v3 or later
  * @link http://code.google.com/p/steam-fw
  */
