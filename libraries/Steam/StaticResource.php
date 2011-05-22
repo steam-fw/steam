@@ -157,10 +157,16 @@ class StaticResource
             {
                 $content = \Steam\Cache::get('_static:cache-file', $cache_file['file_name']);
             }
-            elseif ($content_type == 'application/javascript')
+            elseif ($content_type == 'application/x-php')
             {
                 ob_start();
                 include $filepath;
+                
+                if (isset($content_type))
+                    $response->setHeader('Content-Type',   $content_type, true);
+                else
+                    $response->setHeader('Content-Type',   ini_get('default_mimetype'), true);
+                
                 $content = ob_get_contents();
                 ob_end_clean();
             }

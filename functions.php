@@ -238,6 +238,8 @@ function file_mimetype($file, $string = false)
             return 'text/css';
         case 'js':
             return 'application/javascript';
+        case 'php':
+            return 'application/x-php';
     }
     
     $finfo = finfo_open(FILEINFO_MIME_TYPE);
@@ -247,14 +249,9 @@ function file_mimetype($file, $string = false)
         $mime_type = finfo_buffer($finfo, $file);
     }
     else
+    {
         $mime_type = finfo_file($finfo, $file);
-    
-    finfo_close($finfo);
-    
-    if (!$mime_type)
-        $mime_type = finfo_file($finfo, $file);
-    else
-        return $mime_type;
+    }
     
     finfo_close($finfo);
     
