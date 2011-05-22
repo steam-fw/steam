@@ -33,9 +33,18 @@ namespace Steam\Model;
 class SQL
 {
     private $start_index = NULL;
-    private $max_results = NULL;
+    private $max_items   = NULL;
     private $sort_field  = NULL;
     private $sort_order  = NULL;
+    private $special_fields = array(
+        'response_format',
+        'start_index',
+        'max_items',
+        'sort_field',
+        'sort_order',
+        'search_fields',
+        'search_string',
+    );
     
     private $params = array();
     private $request;
@@ -56,45 +65,27 @@ class SQL
             $this->params = http_parse_query((string) $request->parameters);
         }
         
-        if (isset($this->params['start-index']))
-        {
-            $this->start_index = $this->params['start-index'];
-            unset($this->params['start-index']);
-        }
+        if (isset($this->params['response_format'])) unset($this->params['response_format']);
+        
+        if (isset($this->params['start_index']))
+            $this->start_index = $this->params['start_index'];
         elseif (!empty($this->request->start_index))
-        {
             $this->start_index = (int) $this->request->start_index;
-        }
         
-        if (isset($this->params['max-results']))
-        {
-            $this->max_results = $this->params['max-results'];
-            unset($this->params['max-results']);
-        }
-        elseif (!empty($this->request->max_results))
-        {
-            $this->max_results = (int) $this->request->max_results;
-        }
+        if (isset($this->params['max_items']))
+            $this->max_items = $this->params['max_items'];
+        elseif (!empty($this->request->max_items))
+            $this->max_items = (int) $this->request->max_items;
         
-        if (isset($this->params['sort-field']))
-        {
-            $this->sort_field = $this->params['sort-field'];
-            unset($this->params['sort-field']);
-        }
+        if (isset($this->params['sort_field']))
+            $this->sort_field = $this->params['sort_field'];
         elseif (!empty($this->request->sort_field))
-        {
             $this->sort_field = (string) $this->request->sort_field;
-        }
         
-        if (isset($this->params['sort-order']))
-        {
-            $this->sort_order = $this->params['sort-order'];
-            unset($this->params['sort-order']);
-        }
+        if (isset($this->params['sort_order']))
+            $this->sort_order = $this->params['sort_order'];
         elseif (!empty($this->request->sort_order))
-        {
             $this->sort_order = (string) $this->request->sort_order;
-        }
     }
     
     public function key($key)
@@ -127,6 +118,7 @@ class SQL
         {
             foreach ($this->params as $field => $value)
             {
+                if (!in_array($field, $this->special_fields))
                 $select->where($select->getAdapter()->quoteIdentifier($field) . ' = ' . $select->getAdapter()->quote($value));
             }
             
@@ -224,43 +216,37 @@ class SQL
     
     public function count(&$select)
     {
-        if (is_null($this->max_results))
+        if (is_null($this->max_items))
         {
             return;
         }
-        
-        $max_results = $this->max_results;
         
         $select_count = clone $select;
         $select_count->reset(\Zend_Db_Select::ORDER)->reset(\Zend_Db_Select::COLUMNS)->reset(\Zend_Db_Select::HAVING)->columns(array('row_count' => 'COUNT(*)'));
         
-        if (is_null($this->start_index))
-        {
-            $select->limit($max_results);
-        }
-        else
-        {
-            $page = ((int) ($this->start_index / $max_results)) + 1;
-            $select->limitPage($page, $max_results);
-        }
-        
         if ($this->search)
-        {
             $select_count->where(new \Zend_Db_Expr($this->search . ' > 0'));
-        }
         
-        $this->response->total_items    = $select_count->query()->fetch(\Zend_Db::FETCH_OBJ)->row_count;
-        $this->response->items_per_page = $max_results;
+        $max_items   = $this->max_items;
+        $start_index = (is_null($this->start_index)) ? 1 : $this->start_index;
+        
+        $select->limit($max_items, $start_index - 1);
+        
+        $this->response->max_items      = $max_items;
+        $this->response->start_index    = $start_index;
+        $this->response->total_results  = $select_count->query()->fetch(\Zend_Db::FETCH_OBJ)->row_count;
     }
     
     public function order(&$select)
     {
-        if (is_null($this->sort_field))
+        if (is_null($this->sort_field) or empty($this->sort_field))
         {
             return;
         }
         
-        if (is_null($this->sort_field) or (string) $this->sort_order != 'dsc')
+        $order = strtolower(trim($this->sort_order)) ;
+        
+        if (is_null($this->sort_field) or ($order != 'desc' and $order != 'dsc'))
         {
             $sort_order = 'ASC';
         }
@@ -270,7 +256,7 @@ class SQL
         }
         
         $select->reset(\Zend_Db_Select::ORDER);
-        $select->order((string) $this->sort_field, $sort_order);
+        $select->order((string) $this->sort_field . ' ' . $sort_order);
     }
     
     private function add_results(&$select)
