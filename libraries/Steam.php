@@ -410,7 +410,7 @@ class Steam
             // otherwise attempt to match the contents of the first ()
             elseif (isset($matches[1]))
             {
-                $resource_name = $matches[1];
+                $resource_name = ltrim($matches[1], '/');
             }
             // grab the whole path after the fist slash
             elseif (is_int(strrpos('/', $request_uri->getPath())))
@@ -487,18 +487,26 @@ class Steam
         }
         catch (\Steam\Exception\AppNotFound $exception)
         {
+            \Steam\Error::log_exception($exception);
+            
             return \Steam\Error::display(500, $exception->getMessage());
         }
         catch (\Steam\Exception\FileNotFound $exception)
         {
+            \Steam\Error::log_exception($exception);
+            
             return \Steam\Error::display(404, $exception->getMessage());
         }
         catch (\Steam\Exception\General $exception)
         {
+            \Steam\Error::log_exception($exception);
+            
             return \Steam\Error::display(500, $exception->getMessage());
         }
         catch (\Exception $exception)
         {
+            \Steam\Error::log_exception($exception);
+            
             return \Steam\Error::display(500, $exception->getMessage());
         }
     }
