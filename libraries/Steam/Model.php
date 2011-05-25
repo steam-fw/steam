@@ -161,6 +161,12 @@ class Model
             if (isset($resource_components[2]) and !empty($resource_components[3]))
             {
                 $request->parameters = ltrim($resource_components[3], '/?');
+                
+                if ($method == 'delete' and $request->count() === 0)
+                {
+                    $item = http_parse_query((string) $request->parameters);
+                    $request->add_item($item);
+                }
             }
             
             self::_request($request, $response);
@@ -306,6 +312,8 @@ class Model
         
         // output the status of the response
         $response->setRawHeader('HTTP/1.1 ' . $response_xml->status . ' ' . \Zend_Http_Response::responseCodeAsText(intval($response_xml->status)));
+        
+        if (!isset($request->response_format)) $request->response_format = 'xml';
         
         switch ($request->response_format)
         {
