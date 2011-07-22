@@ -132,15 +132,15 @@ class Error
         }
     }
     
-    public static function log_exception(\Exception $exception)
+    public static function log_exception(\Exception $exception, $priority = NULL)
     {
-            self::$exception = $exception;
-            
-            $message = $exception->getMessage() . ' on line ' . $exception->getLine() . ' of ' . $exception->getFile();
-            
-            \Steam\Logger::log(\Steam::app() . ': ' . $message, \Zend_Log::ERR);
-            
-            return $message;
+        self::$exception = $exception;
+        
+        $message = $exception->getMessage() . ' on line ' . $exception->getLine() . ' of ' . $exception->getFile();
+        
+        \Steam\Logger::log(\Steam::app() . ': ' . $message, is_null($priority) ? \Zend_Log::ERR : $priority);
+        
+        return $message;
     }
     
     /**

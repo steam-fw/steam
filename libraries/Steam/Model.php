@@ -209,7 +209,7 @@ class Model
             
             $model_class = ucfirst($request->model_name) . 'Model';
             
-            if (get_parent_class($model_class) != 'Steam\\Model')
+            if (!is_subclass_of($model_class, 'Steam\\Model'))
             {
                 throw new \Steam\Exception\General('The model could not be loaded properly.');
             }
@@ -231,8 +231,10 @@ class Model
                 }
                 else
                 {
+                    $item = isset($request->parameters) ? (object) http_parse_query((string) $request->parameters) : NULL;
+                    
                     // check to see if the client is allowed to access the resource
-                    if (!$model_class::is_allowed($request->method))
+                    if (!$model_class::is_allowed($request->method, $item))
                     {
                         throw new \Steam\Exception\Access();
                     }
@@ -244,27 +246,38 @@ class Model
             
             $model_class::$method($request, $response);
         }
+        // if the class threw an exception targeted at users
+        catch (Steam\Exception\User $exception)
+        {
+            \Steam\Error::log_exception($exception, \Zend_Log::INFO);
+            $response->status = 400;
+            $response->error  = $exception->getMessage();
+        }
         // if there are access requirements which were not fulfilled
         catch (\Steam\Exception\Access $exception)
         {
+            \Steam\Error::log_exception($exception, \Zend_Log::INFO);
             $response->error = $exception->getMessage();
             $response->status = 401;
         }
         // if the method isn't implemented
         catch (\Steam\Exception\MethodNotImplemented $exception)
         {
+            \Steam\Error::log_exception($exception, \Zend_Log::INFO);
             $response->error = $exception->getMessage();
             $response->status = 405;
         }
         // if the file doesn't exist
         catch (\Steam\Exception\FileNotFound $exception)
         {
+            \Steam\Error::log_exception($exception, \Zend_Log::INFO);
             $response->error = $exception->getMessage();
             $response->status = 404;
         }
         // catch all other exceptions and return the error in the response
         catch (\Exception $exception)
         {
+            \Steam\Error::log_exception($exception);
             $response->error = $exception->getMessage();
             $response->status = 500;
         }
@@ -313,6 +326,11 @@ class Model
         // output the status of the response
         $response->setRawHeader('HTTP/1.1 ' . $response_xml->status . ' ' . \Zend_Http_Response::responseCodeAsText(intval($response_xml->status)));
         
+        // set the meta information in the headers as well
+        $response->setHeader('X-Steam-Total-Results', $response_xml->total_results);
+        $response->setHeader('X-Steam-Total-Items',   $response_xml->total_items  );
+        $response->setHeader('X-Steam-Start-Index',   $response_xml->start_index  );
+        
         if (!isset($request->response_format)) $request->response_format = 'xml';
         
         switch ($request->response_format)
@@ -357,7 +375,7 @@ class Model
         }
         
         \Steam\Event::trigger('steam-response');
-        
+        ob_clean();
         $response->sendResponse();
     }
     

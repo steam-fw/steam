@@ -223,6 +223,7 @@ class View
             $text         = array();
             $layout       = array();
             $content_type = 'text/html';
+            $charset      = 'utf-8';
             
             include \Steam::app_path('views/' . trim($view, '/') . '.php');
         }
@@ -237,13 +238,17 @@ class View
         $_layout       = $layout;
         $_content_type = $content_type;
         
-        $output = ob_get_contents();
+        if ($charset) $_content_type .= '; charset=' . $charset;
         
-        if ($output)
+        $output = ob_get_contents();
+        ob_clean();
+        
+        if (!empty($output))
         {
-            ob_clean();
-            
+            \Steam\Logger::log('Output buffer not empty, outputting contents directly');
             \Steam\Event::trigger('steam-response');
+            if (ini_get('expose_php'))
+                $_response->setHeader('X-Powered-By', 'PHP/' .  phpversion() . ' Steam/' . \Steam::version(), true);
             $_response->setHeader('Content-Type', $_content_type, true);
             $_response->sendHeaders();
             
@@ -315,8 +320,8 @@ class View
         
         unset($_layout);
         
-        self::insert_js();
         self::insert_css();
+        self::insert_js();
         
         foreach (self::$includes as $_block => $_strings)
         {
@@ -359,6 +364,8 @@ class View
         
         \Steam\Event::trigger('steam-response');
         $_response->setHeader('Content-Type', $_content_type, true);
+        if (ini_get('expose_php'))
+            $_response->setHeader('X-Powered-By', 'PHP/' .  phpversion() . ' Steam/' . \Steam::version(), true);
         $_response->sendHeaders();
         
         unset($_content_type);

@@ -53,7 +53,7 @@ class Event
         }
     }
     
-    public static function hook($event, $function, $parameters = array())
+    public static function register($event, $function, $parameters = array())
     {
         self::$hooks[$event][] = array($function, $parameters);
     }

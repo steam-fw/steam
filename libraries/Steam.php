@@ -32,6 +32,11 @@
 class Steam
 {
     /**
+     * Stores the framework version
+     */
+    private static $version = '';
+    
+    /**
      * Stores the name of the current application
      *
      * @type string
@@ -56,6 +61,13 @@ class Steam
      * Stores the type of the current resource (action, model, view, static)
      */
     private static $resource_type = '';
+    
+    /**
+     * Stores a custom parameter for the resource
+     *
+     * @type string
+     */
+    private static $resource_param = '';
     
     /**
      * Stores the current request object
@@ -83,9 +95,19 @@ class Steam
     }
     
     /**
+     * Retrieves the version of Steam. 
+     *
+     * @return string version
+     */
+    public static function version()
+    {
+        return self::$version;
+    }
+    
+    /**
      * Retrieves the name of the current application. 
      *
-     * @return string
+     * @return string application name
      */
     public static function app()
     {
@@ -96,7 +118,7 @@ class Steam
      * Generates an absolute path from a relative path relative to the base
      * directory.
      *
-     * @return string
+     * @return string absolute path
      * @param string $path relative path
      */
     public static function path($path = '')
@@ -189,6 +211,16 @@ class Steam
     }
     
     /**
+     * Returns the param for the current resource.
+     *
+     * @return string
+     */
+    public static function this_resource_param()
+    {
+        return self::$resource_param;
+    }
+    
+    /**
      * Retrieves the value of the specific configuration setting.
      *
      * @throws Steam\Exception\General
@@ -244,6 +276,7 @@ class Steam
     public static function load_config()
     {
         // set the default values for all settings
+        $environment    = '';
         $locale         = 'en_US.utf8';
         $timezone       = 'America/Los_Angeles';
         $base_uri       = '';
@@ -258,6 +291,7 @@ class Steam
         $db_adapter     = '';
         $db_params      = array();
         $portals        = array(array('app' => 'sample', 'domain' => '/.*/', 'path' => '/^.*/'));
+        $initialize     = null;
         
         // load the global configuration file (replacing default values)
         include str_replace('libraries/Steam.php', 'config.php', __FILE__);
@@ -265,6 +299,7 @@ class Steam
         // store the values in the static class variable
         self::$config = array(
             'base_dir'       => str_replace('libraries/Steam.php', '', __FILE__),
+            'environment'    => $environment,
             'locale'         => $locale,
             'timezone'       => $timezone,
             'base_uri'       => $base_uri,
@@ -279,9 +314,10 @@ class Steam
             'db_adapter'     => $db_adapter,
             'db_params'      => $db_params,
             'portals'        => $portals,
+            'initialize'     => $initialize,
         );
         
-        #chdir(self::$config['base_dir']);
+        self::$version = trim(file_get_contents(self::path('version')));
     }
     
     /**
@@ -342,6 +378,8 @@ class Steam
         
         \Steam\Plugin::initialize();
         
+        if (is_callable(self::$config['initialize'])) \Steam\Event::register('steam-initialize', self::$config['initialize']);
+        
         // Signal that initialization is complete
         \Steam\Event::trigger('steam-initialized');
     }
@@ -361,9 +399,10 @@ class Steam
         // define/intialize variables
         $matches;
         $portal;
-        $app_name      = '';
-        $resource_name = '';
-        $resource_type = '';
+        $app_name       = '';
+        $resource_type  = '';
+        $resource_name  = '';
+        $resource_param = '';
         
         // iterate over portals until a match is found
         foreach (self::$config['portals'] as $portal)
@@ -387,7 +426,8 @@ class Steam
             // if a custom handler has been set, use it
             if (isset($portal['resource']))
             {
-                $resource_name = $portal['resource'];
+                $resource_name  = $portal['resource'];
+                $resource_param = isset($matches[1]) ? $matches[1] : '';
             }
             // if a formatter function has been defined to translate the request
             elseif (isset($portal['formatter']) and is_callable($portal['formatter']))
@@ -441,7 +481,7 @@ class Steam
         }
         
         // set the request to the matched values
-        self::set_request($app_name, $resource_type, $resource_name);
+        self::set_request($app_name, $resource_type, $resource_name, $resource_param);
     }
     
     /**
@@ -450,11 +490,12 @@ class Steam
      *
      * @return void
      */
-    public static function set_request($app_name, $resource_type, $resource_name)
+    public static function set_request($app_name, $resource_type, $resource_name, $resource_param = '')
     {
-        self::$app           = $app_name;
-        self::$resource_type = $resource_type;
-        self::$resource      = $resource_name;
+        self::$app            = $app_name;
+        self::$resource_type  = $resource_type;
+        self::$resource       = $resource_name;
+        self::$resource_param = $resource_param;
     }
     
     /**

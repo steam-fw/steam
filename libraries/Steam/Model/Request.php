@@ -252,7 +252,7 @@ class Request implements \Iterator, \ArrayAccess
                 continue;
             }
             
-            $item_element->addChild($name, htmlspecialchars($value));
+            $item_element->addChild($name, htmlspecialchars(@iconv('UTF-8', 'UTF-8//IGNORE', $value)));
         }
         
         $this->sxe->total_items = (int) $this->sxe->total_items + 1;
@@ -295,7 +295,20 @@ class Request implements \Iterator, \ArrayAccess
     
     public function asJSON()
     {
-        return '';
+        $json = array();
+        foreach ($this as $item)
+        {
+            $json_item = array();
+            
+            foreach ($item as $field => $value)
+            {
+                $json_item[$field] = @iconv('UTF-8', 'UTF-8//IGNORE', $value);
+            }
+            
+            $json[] = $json_item;
+        }
+        
+        return json_encode($json);
     }
     
     public function asJSONP($callback)

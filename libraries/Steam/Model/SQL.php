@@ -118,8 +118,18 @@ class SQL
         {
             foreach ($this->params as $field => $value)
             {
-                if (!in_array($field, $this->special_fields))
-                $select->where($select->getAdapter()->quoteIdentifier($field) . ' = ' . $select->getAdapter()->quote($value));
+                if (in_array($field, $this->special_fields)) continue;
+                
+                if (strpos($value, '|') !== false)
+                {
+                    $values = explode('|', $value);
+                    foreach ($values as &$value) $value = $select->getAdapter()->quote($value);
+                    unset($value);
+                    $condition = ' IN (' . implode(',', $values) . ')';
+                }
+                else $condition = ' = ' . $select->getAdapter()->quote($value);
+                
+                $select->where($select->getAdapter()->quoteIdentifier($field) . $condition);
             }
             
             $this->search($select);
@@ -178,7 +188,7 @@ class SQL
                 continue;
             }
             
-            if (strlen($search_word) > $options['min_length'] and !in_array($search_word, $stopwords))
+            if (strlen($search_word) >= $options['min_length'] and !in_array($search_word, $stopwords))
             {
                 $search_words[$db->quote($search_word)] = strlen($search_word);
             }
@@ -244,9 +254,9 @@ class SQL
             return;
         }
         
-        $order = strtolower(trim($this->sort_order)) ;
+        $order = strtolower(trim($this->sort_order));
         
-        if (is_null($this->sort_field) or ($order != 'desc' and $order != 'dsc'))
+        if ($order != 'desc' and $order != 'dsc')
         {
             $sort_order = 'ASC';
         }
@@ -256,7 +266,7 @@ class SQL
         }
         
         $select->reset(\Zend_Db_Select::ORDER);
-        $select->order((string) $this->sort_field . ' ' . $sort_order);
+        $select->order(explode(',', str_replace(',', ' ' . $sort_order . ',', trim($this->sort_field, ',')) . ' ' . $sort_order));
     }
     
     private function add_results(&$select)

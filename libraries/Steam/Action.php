@@ -38,7 +38,7 @@ class Action
         {
             $action = include \Steam::app_path('actions/' . $action_name . '.php');
         }
-        catch (\Steam\Exeption\FileNotFound $exception)
+        catch (\Steam\Exception\FileNotFound $exception)
         {
             \Steam\Error::display(404);
             exit;
@@ -49,9 +49,17 @@ class Action
             throw new \Steam\Exception\General('There was a problem performing the action.');
         }
         
-        $action($request, $response);
+        $result = $action($request, $response);
         
-        if (isset($_SERVER['HTTP_REFERER']))
+        if (is_bool($result) and !$result)
+        {
+            // do nothing
+        }
+        elseif (is_string($result))
+        {
+            $response->setBody($result);
+        }
+        elseif (isset($_SERVER['HTTP_REFERER']))
         {
             $response->setRedirect($_SERVER['HTTP_REFERER'], 303);
         }

@@ -65,7 +65,7 @@ class Logger
                 $channel->setResponse(\Steam::$response);
                 self::$writers['firebug'] = new \Zend_Log_Writer_Firebug();
                 self::add_writer(self::$writers['firebug']);
-                \Steam\Event::hook('steam-response', array($channel, 'flush'));
+                \Steam\Event::register('steam-response', array($channel, 'flush'));
                 break;
             case 'syslog':
                 self::$writers['syslog'] = new \Zend_Log_Writer_Syslog();
