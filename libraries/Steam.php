@@ -230,6 +230,8 @@ class Steam
      */
     public static function config($key, $value = NULL)
     {
+        if (!is_null($value)) return self::$config[$key] = $value;
+        
         // check to see the configuration setting exists
         if (isset(self::$config[$key]))
         {

@@ -57,7 +57,7 @@ class Locale
         \Zend_Translate::setCache(\Steam\Cache::get_cache());
         
         // store Zend_Locale in the registry after 
-        \Zend_Registry::set('\Zend_Locale', new \Zend_Locale($locale));
+        \Zend_Registry::set('Zend_Locale', new \Zend_Locale($locale));
         
         // create an instance of Zend_Translate for translating core Steam text
         #self::$translator = new \Zend_Translate('gettext', \Steam::path('apps/global/translations'), NULL, array('scan' => \Zend_Translate::LOCALE_DIRECTORY));
@@ -82,7 +82,7 @@ class Locale
      */
     public static function set_locale($locale)
     {
-        \Zend_Registry::get('\Zend_Locale')->setLocale($locale);
+        \Zend_Registry::get('Zend_Locale')->setLocale($locale);
     }
     
     /**

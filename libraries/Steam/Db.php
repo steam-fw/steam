@@ -37,10 +37,11 @@ class Db
      */
     protected static $servers;
     
-    protected static $read = 'read';
+    protected static $read   = 'read';
     
     protected static $search = 'search';
     
+    protected static $locks  = 0;
     
     /**
      * Initializes the database by setting the adapter and randomly selecting
@@ -104,12 +105,15 @@ class Db
     
     public static function lock()
     {
+        self::$locks++;
         self::$read   = 'write';
         self::$search = 'write';
     }
     
     public static function unlock()
     {
+        if (self::$locks == 0) return;
+        if (--self::$locks > 0) return;
         self::$read   = 'read';
         self::$search = 'search';
     }

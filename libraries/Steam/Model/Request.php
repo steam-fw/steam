@@ -131,7 +131,9 @@ class Request implements \Iterator, \ArrayAccess
     
     public function offsetSet($index, $value)
     {
-        $this->sxe->items->item[$index] = $value;
+        if (is_array($value)) $this->add_item($value);
+        elseif ($index == '') $this->sxe->items->item[] = $value;
+        else $this->sxe->items->item[$index] = $value;
     }
     
     public function offsetUnset($index)
@@ -314,6 +316,28 @@ class Request implements \Iterator, \ArrayAccess
     public function asJSONP($callback)
     {
         return $callback . '(' . $this->asJSON() . ')';
+    }
+    
+    public function asCSV()
+    {
+        $line = array();
+        foreach ($this[0] as $field => $value) $line[] = '"' . str_replace(array('\\', '"'), array('\\\\', '\\"'), $field) . '"';
+        $csv  = implode(',', $line) . "\n";
+        
+        foreach ($this as $item)
+        {
+            $line = array();
+            
+            foreach ($item as $field => $value)
+            {
+                if (is_numeric($value)) $line[] = $value;
+                else $line[] = '"' . str_replace(array('\\', '"'), array('\\\\', '\\"'), $value) . '"';
+            }
+            
+            $csv .= implode(',', $line) . "\n";
+        }
+        
+        return $csv;
     }
     
     public function __toString()

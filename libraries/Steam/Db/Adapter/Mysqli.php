@@ -35,19 +35,29 @@ class Steam_Db_Adapter_Mysqli extends \Zend_Db_Adapter_Mysqli
 {
     private $_transactionCount = 0;
     
+    /**
+     * Prepare a statement and return a PDOStatement-like object.
+     * Modified to support multiple simultaneous statements.
+     *
+     * @param  string  $sql  SQL query
+     * @return \Zend_Db_Statement_Mysqli
+     */
     public function prepare($sql)
     {
         $this->_connect();
         
-        $stmt = new $this->_defaultStmtClass($this, $sql);
-        
-        if ($stmt === false)
-        {
+        $stmtClass = $this->_defaultStmtClass;
+        if (!class_exists($stmtClass)) {
+            require_once 'Zend/Loader.php';
+            \Zend_Loader::loadClass($stmtClass);
+        }
+        $stmt = new $stmtClass($this, $sql);
+        if ($stmt === false) {
             return false;
         }
         
         $stmt->setFetchMode($this->_fetchMode);
-        
+        $this->_stmt = $stmt;
         return $stmt;
     }
     
@@ -62,11 +72,10 @@ class Steam_Db_Adapter_Mysqli extends \Zend_Db_Adapter_Mysqli
         {
             $this->_connect();
             $this->_connection->autocommit(false);
+            \Steam\Db::lock();
         }
         
         $this->_transactionCount++;
-        
-        \Steam\Db::lock();
     }
 
     /**
@@ -76,6 +85,8 @@ class Steam_Db_Adapter_Mysqli extends \Zend_Db_Adapter_Mysqli
      */
     protected function _commit()
     {
+        if ($this->_transactionCount === 0) return;
+        
         $this->_transactionCount--;
         
         if ($this->_transactionCount === 0)
@@ -83,9 +94,31 @@ class Steam_Db_Adapter_Mysqli extends \Zend_Db_Adapter_Mysqli
             $this->_connect();
             $this->_connection->commit();
             $this->_connection->autocommit(true);
+            \Steam\Db::unlock();
+        }
+    }
+
+    /**
+     * Roll-back a transaction.
+     *
+     * @return void
+     */
+    protected function _rollBack()
+    {
+        if ($this->_transactionCount === 0) return;
+        
+        #$this->_transactionCount--;
+        $this->_transactionCount = 0; // This is safer because it will ensure no invalid commits
+        
+        if ($this->_transactionCount === 0)
+        {
+            $this->_connect();
+            $this->_connection->rollback();
+            $this->_connection->autocommit(true);
+            \Steam\Db::unlock();
         }
         
-        \Steam\Db::unlock();
+        
     }
 
     /**
@@ -160,6 +193,13 @@ class Steam_Db_Adapter_Mysqli extends \Zend_Db_Adapter_Mysqli
         if (!empty($this->_config['charset'])) {
             mysqli_set_charset($this->_connection, $this->_config['charset']);
         }
+    }
+    
+    public function selectDb($dbname)
+    {
+        $this->_connect();
+        
+        mysqli_select_db($this->_connection, $dbname);
     }
 }
 

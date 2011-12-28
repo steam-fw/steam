@@ -82,7 +82,7 @@ class Cache
     {
         if (!$value = self::$cache->load(md5(self::format_context($context) . $identifier)))
         {
-            throw new \Steam\Exception\Cache(gettext('The specified data does not exist within the cache.'));
+            throw new \Steam\Exception\Cache(gettext('The specified data identified by "' . self::format_context($context) . $identifier . '" does not exist within the cache.'));
         }
         
         return $value;

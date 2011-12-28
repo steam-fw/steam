@@ -341,15 +341,21 @@ class Model
                 $response->setBody($response_xml->asXML());
                 break;
             case 'json':
-                // output an xml representation of the data
+                // output an json representation of the data
                 $response->setHeader('Content-Type', 'text/javascript; charset=utf-8', true);
                 $response->setBody($response_xml->asJSON());
                 break;
             case 'jsonp':
-                // output an xml representation of the data
+                // output an json representation of the data
                 $callback = (isset($_REQUEST['jsonp'])) ? $_REQUEST['jsonp'] : 'jsonp';
                 $response->setHeader('Content-Type', 'text/javascript; charset=utf-8', true);
                 $response->setBody($response_xml->asJSONP($callback));
+                break;
+            case 'csv':
+                // output an csv representation of the data
+                $response->setHeader('Content-Type', 'text/csv; charset=utf-8', true);
+                $response->setHeader('Content-Disposition', 'attachment; filename=' . preg_replace('~\\?.*$~', '', $resource_name) . '.csv', true);
+                $response->setBody($response_xml->asCSV());
                 break;
             default:
                 // output a custom representation of the data

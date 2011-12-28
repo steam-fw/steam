@@ -151,10 +151,7 @@ class SQL
     
     public function search(&$select)
     {
-        if (!$this->request->search_string)
-        {
-            return;
-        }
+        if (!$this->request->search_string) return;
         
         $this->search = true;
         
@@ -162,21 +159,14 @@ class SQL
         $search_fields = array();
         
         foreach (explode(',', $this->request->search_fields) as $search_field)
-        {
             if ($search_field = trim($search_field))
-            {
                 $search_fields[] = $search_field;
-            }
-        }
         
-        if (!count($search_fields))
-        {
-            return;
-        }
+        if (!count($search_fields)) return;
         
         $db = $select->getAdapter();
         
-        $options = array('stopwords' => false, 'min_length' => 2, 'max_words' => 5);
+        $options = array('stopwords' => false, 'min_length' => 1, 'max_words' => 5, 'ignore_repeats' => false);
         $search_words = array();
         
         $stopwords = array(); //($options['stopwords']) ? \Steam\Setting::get('stopwords') : array();
@@ -184,38 +174,34 @@ class SQL
         foreach (explode(' ', $this->request->search_string) as $search_word)
         {
             if (!$search_word = trim($search_word))
-            {
                 continue;
-            }
             
             if (strlen($search_word) >= $options['min_length'] and !in_array($search_word, $stopwords))
-            {
                 $search_words[$db->quote($search_word)] = strlen($search_word);
-            }
             
             if (count($search_words) >= $options['max_words'])
-            {
                 break;
-            }
         }
         
-        if (!count($search_words))
-        {
-            //no search
-            return;
-        }
+        //no search
+        if (!count($search_words)) return;
         
         $search = ' (';
         
-        foreach ($search_fields as $search_field)
+        if (isset($search_fields[1]))
         {
-            $search_field = $db->quoteIdentifier($search_field);
-            
-            foreach ($search_words as $search_word => $word_length)
-            {
-                #$search .= ' IF(LOCATE(' . $search_word . ', ' . $search_field . '), 1, 0) +';
+            $search_field = 'CONCAT_WS(\' \', ';
+            foreach ($search_fields as $field) $search_field .= $db->quoteIdentifier($field) . ', ';
+            $search_field = rtrim($search_field, ', ') . ')';
+        }
+        else $search_field = $search_fields[0];
+        
+        foreach ($search_words as $search_word => $word_length)
+        {
+            if ($options['ignore_repeats'])
+                $search .= ' IF(LOCATE(' . $search_word . ', ' . $search_field . '), 1, 0) +';
+            else
                 $search .= ' IF(LOCATE(' . $search_word . ', ' . $search_field . '), 3 + ((CHAR_LENGTH(' . $search_field . ') - CHAR_LENGTH(REPLACE(LOWER(' . $search_field . '), LOWER(' . $search_word . '), \'\'))) / ' . $word_length . '), 0) +';
-            }
         }
         
         $this->search = rtrim($search, '+') . ')';
@@ -232,7 +218,12 @@ class SQL
         }
         
         $select_count = clone $select;
-        $select_count->reset(\Zend_Db_Select::ORDER)->reset(\Zend_Db_Select::COLUMNS)->reset(\Zend_Db_Select::HAVING)->columns(array('row_count' => 'COUNT(*)'));
+        $select_count->reset(\Zend_Db_Select::ORDER);
+        
+        $having = $select->getPart(\Zend_Db_Select::HAVING);
+        if (!isset($having[0])) $select_count->reset(\Zend_Db_Select::ORDER)->reset(\Zend_Db_Select::COLUMNS)->columns(array('row_count' => 'COUNT(*)'));
+        
+        $select_count->columns(array('row_count' => 'COUNT(*)'));
         
         if ($this->search)
             $select_count->where(new \Zend_Db_Expr($this->search . ' > 0'));
@@ -241,10 +232,13 @@ class SQL
         $start_index = (is_null($this->start_index)) ? 1 : $this->start_index;
         
         $select->limit($max_items, $start_index - 1);
+        $result = $select_count->query();
         
         $this->response->max_items      = $max_items;
         $this->response->start_index    = $start_index;
-        $this->response->total_results  = $select_count->query()->fetch(\Zend_Db::FETCH_OBJ)->row_count;
+        $this->response->total_results  = 0;
+        
+        while ($row = $result->fetch()) $this->response->total_results += $row['row_count'];
     }
     
     public function order(&$select)

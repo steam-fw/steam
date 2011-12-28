@@ -55,7 +55,7 @@ class Action
         {
             // do nothing
         }
-        elseif (is_string($result))
+        elseif (is_string($result) or is_numeric($result))
         {
             $response->setBody($result);
         }

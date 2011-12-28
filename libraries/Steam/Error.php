@@ -96,6 +96,7 @@ class Error
             }
         }
         
+        spl_autoload_call($exception_class);
         $exception = new $exception_class($message, $level);
         $exception->setFile($file);
         $exception->setLine($line);
@@ -103,7 +104,7 @@ class Error
         self::log_exception($exception);
         
         // certain errors cannot be handled properly when thrown
-        if ($exception_class == 'Steam\Exception\Fatal')
+        if ($exception_class == 'Steam\\Exception\\Fatal')
         {
             self::exception_handler($exception);
         }
@@ -139,6 +140,10 @@ class Error
         $message = $exception->getMessage() . ' on line ' . $exception->getLine() . ' of ' . $exception->getFile();
         
         \Steam\Logger::log(\Steam::app() . ': ' . $message, is_null($priority) ? \Zend_Log::ERR : $priority);
+        
+        if (isset($_SERVER['REQUEST_URI'])) \Steam\Logger::log(\Steam::app() . ': ' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'], \Zend_Log::DEBUG);
+        elseif (php_sapi_name() == 'cli')   \Steam\Logger::log(\Steam::app() . ': ' . $argv[0], \Zend_Log::DEBUG);
+        \Steam\Logger::log(\Steam::app() . ': ' . \Steam::this_resource_type() . ' || ' . \Steam::this_resource() . ' || ' . \Steam::this_resource_param(), \Zend_Log::DEBUG);
         
         return $message;
     }
