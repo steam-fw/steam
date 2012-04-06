@@ -302,9 +302,10 @@ class Model
                 break;
             case 'GET':
             case 'HEAD':
-                $method = 'retrieve';
-                // translate the get variables in the request to a request object
-                $request = new \Steam\Model\Request($_GET);
+                $method  = 'retrieve';
+                $request = new \Steam\Model\Request();
+                
+                if (isset($_GET['response_format'])) $request->response_format = $_GET['response_format'];
                 break;
             case 'PUT':
                 $method = 'update';

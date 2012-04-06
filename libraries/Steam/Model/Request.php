@@ -38,14 +38,10 @@ class Request implements \Iterator, \ArrayAccess
     public function __construct($xml = NULL)
     {
         if (is_null($xml) or !$xml)
-        {
-            $xml = array();
-        }
+            $xml = '<?xml version="1.0"?><data></data>';
         
         if (is_array($xml))
-        {
             $xml = self::array_to_xml($xml);
-        }
         
         try
         {

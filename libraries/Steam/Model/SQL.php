@@ -32,10 +32,12 @@ namespace Steam\Model;
 
 class SQL
 {
-    private $start_index = NULL;
-    private $max_items   = NULL;
-    private $sort_field  = NULL;
-    private $sort_order  = NULL;
+    private $start_index    = NULL;
+    private $max_items      = NULL;
+    private $sort_field     = NULL;
+    private $sort_order     = NULL;
+    private $search_fields  = NULL;
+    private $search_string  = NULL;
     private $special_fields = array(
         'response_format',
         'start_index',
@@ -53,6 +55,7 @@ class SQL
     private $key;
     private $secondary = array();
     private $search = '';
+    public  $skip_count = false;
     
     public function __construct(\Steam\Model\Request &$request, \Steam\Model\Response &$response, $schema = NULL)
     {
@@ -61,31 +64,15 @@ class SQL
         $this->schema   = $schema;
         
         if (!empty($request->parameters))
-        {
             $this->params = http_parse_query((string) $request->parameters);
+        
+        foreach ($this->special_fields as $field)
+        {
+            if (isset($this->params[$field]))
+                $this->{$field} = $this->params[$field];
+            elseif (isset($this->request->{$field}))
+                $this->{$field} = (string) $this->request->{$field};
         }
-        
-        if (isset($this->params['response_format'])) unset($this->params['response_format']);
-        
-        if (isset($this->params['start_index']))
-            $this->start_index = $this->params['start_index'];
-        elseif (!empty($this->request->start_index))
-            $this->start_index = (int) $this->request->start_index;
-        
-        if (isset($this->params['max_items']))
-            $this->max_items = $this->params['max_items'];
-        elseif (!empty($this->request->max_items))
-            $this->max_items = (int) $this->request->max_items;
-        
-        if (isset($this->params['sort_field']))
-            $this->sort_field = $this->params['sort_field'];
-        elseif (!empty($this->request->sort_field))
-            $this->sort_field = (string) $this->request->sort_field;
-        
-        if (isset($this->params['sort_order']))
-            $this->sort_order = $this->params['sort_order'];
-        elseif (!empty($this->request->sort_order))
-            $this->sort_order = (string) $this->request->sort_order;
     }
     
     public function key($key)
@@ -120,16 +107,44 @@ class SQL
             {
                 if (in_array($field, $this->special_fields)) continue;
                 
-                if (strpos($value, '|') !== false)
-                {
-                    $values = explode('|', $value);
-                    foreach ($values as &$value) $value = $select->getAdapter()->quote($value);
-                    unset($value);
-                    $condition = ' IN (' . implode(',', $values) . ')';
-                }
-                else $condition = ' = ' . $select->getAdapter()->quote($value);
+                $modifier = substr($field, -1, 1);
+                $field    = substr($field, 0, strlen($field) - 1);
                 
-                $select->where($select->getAdapter()->quoteIdentifier($field) . $condition);
+                switch ($modifier)
+                {
+                    case '>':
+                        $condition = ' >= ' . $select->getAdapter()->quote($value);
+                        break;
+                    case '<':
+                        $condition = ' <= ' . $select->getAdapter()->quote($value);
+                        break;
+                    case '~':
+                        $condition = ' LIKE ' . $select->getAdapter()->quote($value);
+                        break;
+                    case '*':
+                        $condition = ' LIKE ' . $select->getAdapter()->quote('%' . $value . '%');
+                        break;
+                    case '#':
+                        $condition = ' RLIKE ' . $select->getAdapter()->quote($value);
+                        break;
+                    case '!':
+                        $condition = ' <> ' . $select->getAdapter()->quote($value);
+                        break;
+                    case '|':
+                        $condition = ' IN (' . $select->getAdapter()->quote(explode('|', $value)) . ')';
+                        break;
+                    default:
+                        $field    .= $modifier;
+                        $condition = ' = ' . $select->getAdapter()->quote($value);
+                }
+                
+                $fields     = explode(',', $field);
+                $conditions = array();
+                
+                foreach ($fields as $field)
+                    $conditions[] = $select->getAdapter()->quoteIdentifier($field) . $condition;
+                
+                $select->where(implode(' OR ', $conditions));
             }
             
             $this->search($select);
@@ -151,14 +166,14 @@ class SQL
     
     public function search(&$select)
     {
-        if (!$this->request->search_string) return;
+        if (!$this->search_string) return;
         
         $this->search = true;
         
         $options = array();
         $search_fields = array();
         
-        foreach (explode(',', $this->request->search_fields) as $search_field)
+        foreach (explode(',', $this->search_fields) as $search_field)
             if ($search_field = trim($search_field))
                 $search_fields[] = $search_field;
         
@@ -166,12 +181,12 @@ class SQL
         
         $db = $select->getAdapter();
         
-        $options = array('stopwords' => false, 'min_length' => 1, 'max_words' => 5, 'ignore_repeats' => false);
+        $options = array('stopwords' => false, 'min_length' => 1, 'max_words' => 5, 'ignore_repeats' => true);
         $search_words = array();
         
         $stopwords = array(); //($options['stopwords']) ? \Steam\Setting::get('stopwords') : array();
         
-        foreach (explode(' ', $this->request->search_string) as $search_word)
+        foreach (explode(' ', $this->search_string) as $search_word)
         {
             if (!$search_word = trim($search_word))
                 continue;
@@ -183,7 +198,7 @@ class SQL
                 break;
         }
         
-        //no search
+            //no search
         if (!count($search_words)) return;
         
         $search = ' (';
@@ -212,18 +227,14 @@ class SQL
     
     public function count(&$select)
     {
-        if (is_null($this->max_items))
-        {
-            return;
-        }
+        if (is_null($this->max_items) or $this->skip_count) return;
         
         $select_count = clone $select;
         $select_count->reset(\Zend_Db_Select::ORDER);
         
         $having = $select->getPart(\Zend_Db_Select::HAVING);
         if (!isset($having[0])) $select_count->reset(\Zend_Db_Select::ORDER)->reset(\Zend_Db_Select::COLUMNS)->columns(array('row_count' => 'COUNT(*)'));
-        
-        $select_count->columns(array('row_count' => 'COUNT(*)'));
+        else $select_count->columns(array('row_count' => 'COUNT(*)'));
         
         if ($this->search)
             $select_count->where(new \Zend_Db_Expr($this->search . ' > 0'));

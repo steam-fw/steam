@@ -96,31 +96,27 @@ function unlink_r($directory)
  */
 function http_parse_query($query, $separator = NULL)
 {
-    if (empty($query))
-    {
-        return array();
-    }
-    
-    if (is_null($separator))
-    {
-        $separator = ini_get('arg_separator.output');
-    }
+    if (empty($query)) return array();
+    if (is_null($separator)) $separator = ini_get('arg_separator.output');
     
     $pairs = explode($separator, $query);
     $array = array();
     
     foreach ($pairs as $pair)
     {
-        $kv = explode('=', $pair);
+        $kv  = explode('=', $pair);
+        $key = urldecode($kv[0]);
+        $val = isset($kv[1]) ? urldecode($kv[1]) : NULL;
         
-        if (isset($kv[1]))
+        if (preg_match('~([^\\[\\]]+)((\\[[^\\[\\]]*\\])+)$~', $key, $matches))
         {
-            $array[$kv[0]] = urldecode($kv[1]);
+            $keys = array($matches[1]);
+            preg_match_all('~\\[([^\\[\\]]*)\\]~', $matches[2], $matches);
+            $keys = array_merge($keys, $matches[1]);
+            while (($key = array_pop($keys)) !== NULL) $val = array($key => $val);
+            $array = array_merge_recursive($array, $val);
         }
-        else
-        {
-            $array[$kv[0]] = NULL;
-        }
+        else $array[$key] = $val;
     }
     
     return $array;

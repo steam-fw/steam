@@ -24,7 +24,7 @@
  *
  * @category Frameworks
  * @package Steam
- * @copyright 2008-2011 Shaddy Zeineddine
+ * @copyright 2008-2012 Shaddy Zeineddine
  * @license http://www.gnu.org/licenses/gpl.txt GPL v3 or later
  * @link http://code.google.com/p/steam-fw
  */
@@ -34,14 +34,15 @@ namespace Steam;
 
 class View
 {
-    private static $cache = '';
-    private static $includes = array();
+    private static $widget_id    = 0;
+    private static $cache        = false;
+    private static $includes     = array();
     private static $internal_css = array();
     private static $external_css = array();
     private static $internal_js  = array();
     private static $external_js  = array();
-    private static $widget_id = 0;
-    private static $text = array();
+    private static $text         = array();
+    private static $filters      = array();
     
     public static function insert($block, $html)
     {
@@ -190,9 +191,10 @@ class View
         
     }
     
-    public static function cache($instance_id = '')
+    public static function cache($instance_id = NULL)
     {
-        self::$cache = '~' . $instance_id;
+        if (is_null($instance_id)) self::$cache = true;
+        else self::$cache = '~' . $instance_id;
     }
     
     /**
@@ -203,6 +205,25 @@ class View
     public static function widget_id()
     {
         return self::$widget_id;
+    }
+    
+    public static function add_filter($type, $function)
+    {
+        self::$filters[$type][] = $function;
+    }
+    
+    public static function text_filter($block, $text)
+    {
+        if (isset(self::$filters['text']))
+            foreach (self::$filters['text'] as $filter) $text = $filter($block, $text);
+        return $text;
+    }
+    
+    public static function widget_filter($block, $widget, $content)
+    {
+        if (isset(self::$filters['widget']))
+            foreach (self::$filters['widget'] as $filter) $content = $filter($block, $widget, $content);
+        return $content;
     }
     
     /**
@@ -293,22 +314,25 @@ class View
                 foreach ($_widgets as $_widget)
                 {
                     self::$widget_id++;
-                    self::$cache = '';
+                    self::$cache = false;
                     ob_clean();
                     @include \Steam::app_path('widgets/' . $_widget . '.php');
                     
                     if (self::$cache)
                     {
-                        $output = ob_get_contents();
-                        \Steam\Cache::set('_widget:content',    $_widget . self::$cache, $output);
-                        \Steam\Cache::set('_widget:cache-date', $_widget . self::$cache, time());
-                        $$_block .= $output;
-                        unset($output);
+                        $cache_id = $_widget . (is_string(self::$cache) ? self::$cache : '');
+                        $output   = ob_get_contents();
+                        \Steam\Cache::set('_widget:content',    $cache_id, $output);
+                        \Steam\Cache::set('_widget:cache-date', $cache_id, time());
                     }
                     else
                     {
-                        $$_block .= ob_get_contents();
+                        $output = ob_get_contents();
                     }
+                    
+                    
+                    $$_block .= self::widget_filter($_block, $_widget, $output);
+                    $output   = NULL;
                 }
             }
             while (prev($_layout));
@@ -330,10 +354,7 @@ class View
             
             foreach ($_strings as $_string)
             {
-                if (!isset($$_block))
-                {
-                    $$_block = '';
-                }
+                if (!isset($$_block)) $$_block = '';
                 
                 $$_block .= $_string;
             }
@@ -350,12 +371,9 @@ class View
             $_blocks[$_block] = 0;
             $_block = '_' . $_block;
             
-            if (!isset($$_block))
-            {
-                $$_block = '';
-            }
+            if (!isset($$_block)) $$_block = '';
             
-            $$_block .= $_string;
+            $$_block .= self::text_filter($_block, $_string);
         }
         
         unset($_text);

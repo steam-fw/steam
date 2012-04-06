@@ -44,25 +44,27 @@ class Action
             exit;
         }
         
-        if (!is_callable($action))
+        if (!is_callable($action)) throw new \Steam\Exception\General('There was a problem performing the action.');
+        
+        try
         {
-            throw new \Steam\Exception\General('There was a problem performing the action.');
+            $response->setHeader('Content-Type', 'text/plain');
+            $result = $action($request, $response);
+        }
+        catch (\Exception $exception)
+        {
+            $response->setHeader('Content-Type', 'text/html');
+            throw $exception;
         }
         
-        $result = $action($request, $response);
-        
-        if (is_bool($result) and !$result)
-        {
-            // do nothing
-        }
+        if (headers_sent())
+            return;
+        elseif (is_bool($result) and !$result)
+            ;// do nothing
         elseif (is_string($result) or is_numeric($result))
-        {
             $response->setBody($result);
-        }
-        elseif (isset($_SERVER['HTTP_REFERER']))
-        {
+        elseif (!$response->isRedirect() and isset($_SERVER['HTTP_REFERER']))
             $response->setRedirect($_SERVER['HTTP_REFERER'], 303);
-        }
         
         \Steam\Event::trigger('steam-response');
         

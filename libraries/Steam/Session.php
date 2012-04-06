@@ -95,7 +95,7 @@ class Session implements \Zend_Session_SaveHandler_Interface
         }
         catch (\Steam\Exception\Cache $exception)
         {
-            \Steam\Error::log_exception($exception);
+            #\Steam\Error::log_exception($exception);
             
             return '';
         }

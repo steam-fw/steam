@@ -183,11 +183,23 @@ class Steam
      *
      * @return string
      */
-    public static function this_uri()
+    public static function this_uri($new_query = NULL)
     {
-        $query_string = (!empty($_SERVER['QUERY_STRING'])) ? '?' . $_SERVER['QUERY_STRING'] : '';
+        $old_query = (!empty($_SERVER['QUERY_STRING'])) ? '?' . $_SERVER['QUERY_STRING'] : '';
         
-        return rtrim(self::$config['base_uri'], '/') . '/' . ltrim(self::$resource, '/') . $query_string;
+        if (!is_null($new_query) and $new_query)
+        {
+            if ($old_query)
+            {
+                parse_str(ltrim($old_query, '?&'), $old_params);
+                parse_str(ltrim($new_query, '?&'), $new_params);
+                $query_string = '?' . http_build_query(array_merge($old_params, $new_params));
+            }
+            else $query_string = $new_query;
+        }
+        else $query_string = $old_query;
+        
+        return preg_replace('~\\?.*~', '', $_SERVER['REQUEST_URI']) . $query_string;
     }
     
     /**

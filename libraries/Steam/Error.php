@@ -135,6 +135,8 @@ class Error
     
     public static function log_exception(\Exception $exception, $priority = NULL)
     {
+        global $argv;
+        
         self::$exception = $exception;
         
         $message = $exception->getMessage() . ' on line ' . $exception->getLine() . ' of ' . $exception->getFile();
