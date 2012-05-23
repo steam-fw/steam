@@ -5,7 +5,7 @@
  * This class inserts widgets into templates and outputs the result to
  * the client as specified in a view.
  *
- * Copyright 2008-2011 Shaddy Zeineddine
+ * Copyright 2008-2012 Shaddy Zeineddine
  *
  * This file is part of Steam, a PHP application framework.
  *
@@ -297,17 +297,14 @@ class View
             
             do
             {
-                $_block   = key($_layout);
+                $_block = key($_layout);
                 $_blocks[$_block] = 0;
                 
                 $_block = '_' . $_block;
                 
                 $_widgets = current($_layout);
                 
-                if ($_block[1] == '_')
-                {
-                    throw new \Steam\Exception\General('Invalid block name.');
-                }
+                if ($_block[1] == '_') throw new \Steam\Exception\General('Invalid block name.');
                 
                 $$_block = '';
                 
@@ -335,7 +332,7 @@ class View
                     $output   = NULL;
                 }
             }
-            while (prev($_layout));
+            while (prev($_layout) !== false);
             
             unset($_widgets);
             

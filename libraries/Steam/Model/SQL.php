@@ -4,7 +4,7 @@
  *
  * This class simplifies retrieval from SQL databases
  *
- * Copyright 2008-2011 Shaddy Zeineddine
+ * Copyright 2008-2012 Shaddy Zeineddine
  *
  * This file is part of Steam, a PHP application framework.
  *
@@ -23,7 +23,7 @@
  *
  * @category Frameworks
  * @package Steam
- * @copyright 2008-2011 Shaddy Zeineddine
+ * @copyright 2008-2012 Shaddy Zeineddine
  * @license http://www.gnu.org/licenses/gpl.txt GPL v3 or later
  * @link http://code.google.com/p/steam-fw
  */
@@ -56,6 +56,15 @@ class SQL
     private $secondary = array();
     private $search = '';
     public  $skip_count = false;
+    
+    // SEARCH OPTIONS
+    public $search_stopwords      = false;
+    public $search_min_length     = 1;
+    public $search_max_words      = 5;
+    public $search_ignore_repeats = true;
+    public $search_require_all    = false;
+    
+    private $search_min_rank      = 1;
     
     public function __construct(\Steam\Model\Request &$request, \Steam\Model\Response &$response, $schema = NULL)
     {
@@ -181,7 +190,13 @@ class SQL
         
         $db = $select->getAdapter();
         
-        $options = array('stopwords' => false, 'min_length' => 1, 'max_words' => 5, 'ignore_repeats' => true);
+        $options = array(
+            'stopwords'      => $this->search_stopwords,
+            'min_length'     => $this->search_min_length,
+            'max_words'      => $this->search_max_words,
+            'ignore_repeats' => $this->search_ignore_repeats,
+            'require_all'    => $this->search_require_all,
+        );
         $search_words = array();
         
         $stopwords = array(); //($options['stopwords']) ? \Steam\Setting::get('stopwords') : array();
@@ -219,9 +234,10 @@ class SQL
                 $search .= ' IF(LOCATE(' . $search_word . ', ' . $search_field . '), 3 + ((CHAR_LENGTH(' . $search_field . ') - CHAR_LENGTH(REPLACE(LOWER(' . $search_field . '), LOWER(' . $search_word . '), \'\'))) / ' . $word_length . '), 0) +';
         }
         
+        $this->search_min_rank = $options['require_all'] ? count($search_words) : 1;
         $this->search = rtrim($search, '+') . ')';
         $select->columns(array('search_rank' => new \Zend_Db_Expr($this->search)))
-               ->having('search_rank > 0')
+               ->having('search_rank >= ' . $this->search_min_rank)
                ->order('search_rank DESC');
     }
     
@@ -237,7 +253,7 @@ class SQL
         else $select_count->columns(array('row_count' => 'COUNT(*)'));
         
         if ($this->search)
-            $select_count->where(new \Zend_Db_Expr($this->search . ' > 0'));
+            $select_count->where(new \Zend_Db_Expr($this->search . ' >= ' . $this->search_min_rank));
         
         $max_items   = $this->max_items;
         $start_index = (is_null($this->start_index)) ? 1 : $this->start_index;

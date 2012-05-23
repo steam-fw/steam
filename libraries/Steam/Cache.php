@@ -4,7 +4,7 @@
  *
  * This class provides a front end interface to Zend_Cache.
  *
- * Copyright 2008-2011 Shaddy Zeineddine
+ * Copyright 2008-2012 Shaddy Zeineddine
  *
  * This file is part of Steam, a PHP application framework.
  *
@@ -23,7 +23,7 @@
  *
  * @category Frameworks
  * @package Steam
- * @copyright 2008-2011 Shaddy Zeineddine
+ * @copyright 2008-2012 Shaddy Zeineddine
  * @license http://www.gnu.org/licenses/gpl.txt GPL v3 or later
  * @link http://code.google.com/p/steam-fw
  */
@@ -60,10 +60,11 @@ class Cache
      * @param string $context data context
      * @param string $identifier context specific identifier
      * @param mixed $value data to store
+     * @param array $tags array of strings to tag the data
      */
-    public static function set($context, $identifier, $value)
+    public static function set($context, $identifier, $value, $tags = NULL, $lifetime = false)
     {
-        if (!self::$cache->save($value, md5(self::format_context($context) . $identifier)))
+        if (!self::$cache->save($value, md5(self::format_context($context) . $identifier), self::format_tags($tags), $lifetime))
         {
             throw new \Steam\Exception\Cache(gettext('There was a problem storing data in the cache.'));
         }
@@ -80,7 +81,7 @@ class Cache
      */
     public static function get($context, $identifier)
     {
-        if (!$value = self::$cache->load(md5(self::format_context($context) . $identifier)))
+        if (($value = self::$cache->load(md5(self::format_context($context) . $identifier))) === false)
         {
             throw new \Steam\Exception\Cache(gettext('The specified data identified by "' . self::format_context($context) . $identifier . '" does not exist within the cache.'));
         }
@@ -145,6 +146,23 @@ class Cache
         }
         
         return $context;
+    }
+    
+    /**
+     * Converts an array of relative tags into absolute tags using the
+     * same method as format_context. If the tags array is not an array,
+     * it returns an empty array.
+     *
+     * @return array formatted tags
+     * @param array raw tags
+     */
+    protected static function format_tags($tags)
+    {
+        if (!is_array($tags)) return array();
+        
+        foreach ($tags as &$tag) $tag = self::format_context($tag);
+        
+        return $tags;
     }
 }
 

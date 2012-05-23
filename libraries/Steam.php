@@ -4,7 +4,7 @@
  *
  * This class initializes and manages the Steam environment.
  *
- * Copyright 2008-2011 Shaddy Zeineddine
+ * Copyright 2008-2012 Shaddy Zeineddine
  *
  * This file is part of Steam, a PHP application framework.
  *
@@ -23,7 +23,7 @@
  *
  * @category Frameworks
  * @package Steam
- * @copyright 2008-2011 Shaddy Zeineddine
+ * @copyright 2008-2012 Shaddy Zeineddine
  * @license http://www.gnu.org/licenses/gpl.txt GPL v3 or later
  * @link http://code.google.com/p/steam-fw
  */
@@ -302,6 +302,7 @@ class Steam
         $fingerprinting = true;
         $cache_backend  = '';
         $cache_params   = array('cache_dir' => str_replace('libraries/Steam.php', 'cache/', __FILE__));
+        $cache_session  = true;
         $db_adapter     = '';
         $db_params      = array();
         $portals        = array(array('app' => 'sample', 'domain' => '/.*/', 'path' => '/^.*/'));
@@ -325,6 +326,7 @@ class Steam
             'fingerprinting' => $fingerprinting,
             'cache_backend'  => $cache_backend,
             'cache_params'   => $cache_params,
+            'cache_session'  => $cache_session,
             'db_adapter'     => $db_adapter,
             'db_params'      => $db_params,
             'portals'        => $portals,
@@ -376,9 +378,6 @@ class Steam
         {
             // initialize caching with the configured backend and parameters
             \Steam\Cache::initialize(self::$config['cache_backend'], self::$config['cache_params']);
-            
-            // configure Zend_Session to use a custom cache based save handler
-            \Zend_Session::setSaveHandler(new \Steam\Session());
         }
         
         // initialize localization support
@@ -587,6 +586,7 @@ class Steam
             $static_maxage  = self::$config['static_maxage'];
             $static_path    = self::$config['static_path'];
             $fingerprinting = self::$config['fingerprinting'];
+            $cache_session  = self::$config['cache_session'];
             
             // load the application configuration file (replacing current values)
             include_once self::$config['app_dir'] . 'config.php';
@@ -642,10 +642,25 @@ class Steam
             self::$config['static_maxage']  = $static_maxage;
             self::$config['static_path']    = trim($static_path, '/');
             self::$config['fingerprinting'] = $fingerprinting;
+            self::$config['cache_session']  = $cache_session;
         }
         catch (\Steam\Exception\FileNotFound $exception)
         {
             //config file doesn't exist, ignore and continue
+        }
+        
+        if (self::$config['cache_backend'] and self::$config['cache_session'])
+        {
+            if (self::$config['cache_session'] == 'zend')
+            {
+                // configure Zend_Session to use a custom cache based save handler
+                \Zend_Session::setSaveHandler(new \Steam\Session\SaveHandler\Cache());
+            }
+            else
+            {
+                // override PHP's session handling to use a custom cache based handler
+                \Steam\Session\Handler::initialize();
+            }
         }
         
         try
@@ -670,6 +685,8 @@ class Steam
         }
         catch (\Steam\Exception\FileNotFound $exception)
         {
+            \Steam\Error::log_exception($exception);
+            
             throw new \Steam\Exception\AppNotFound('The application could not be found.');
         }
     }
