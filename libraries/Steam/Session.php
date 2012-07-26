@@ -232,7 +232,7 @@ class Session
         
         $index = self::index_read();
         
-        if ($key = array_search($name, $index))
+        if (($key = array_search($name, $index)) !== false)
         {
             unset($index[$key]);
             self::index_write($index);
@@ -253,7 +253,12 @@ class Session
         
         if (!flock(self::$ip, \LOCK_EX)) throw new \Steam\Exception\General('Could not obtain a lock on the session index.');
         
-        return unserialize(fread(self::$ip, filesize(self::$index)));
+        // ensure the filesize is up-to-date
+        clearstatcache(true, self::$index);
+        
+        $data = fread(self::$ip, filesize(self::$index));
+        rewind(self::$ip);
+        return unserialize($data);
     }
     
     /**
@@ -264,7 +269,9 @@ class Session
      */
     protected static function index_write($array)
     {
-        fwrite(self::$ip, serialize($array));
+        $data = serialize($array);
+        ftruncate(self::$ip, strlen($data));
+        fwrite(self::$ip, $data);
     }
     
     /**

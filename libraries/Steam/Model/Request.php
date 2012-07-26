@@ -327,7 +327,7 @@ class Request implements \Iterator, \ArrayAccess
             foreach ($item as $field => $value)
             {
                 if (is_numeric($value)) $line[] = $value;
-                else $line[] = '"' . str_replace(array('\\', '"'), array('\\\\', '\\"'), $value) . '"';
+                else $line[] = '"' . str_replace('"', '""', $value) . '"';
             }
             
             $csv .= implode(',', $line) . "\n";

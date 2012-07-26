@@ -257,4 +257,9 @@ function file_mimetype($file, $string = false)
         return $mime_type;
 }
 
+function quote_csv($string)
+{
+    return str_replace('"', '""', $string);
+}
+
 ?>

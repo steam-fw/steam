@@ -43,11 +43,13 @@ class Response extends Request
     
     public function add_results(&$select)
     {
-        $statement = $select->query();
+        $mysql  = $select->getAdapter()->getConnection();
+        $result = mysqli_query($mysql, (string) $select, \MYSQLI_USE_RESULT);
         
-        while ($item = $statement->fetch())
+        if ($result)
         {
-            $this->add_item($item);
+            while ($item = $result->fetch_assoc()) $this->add_item($item);
+            $result->free();
         }
     }
 }

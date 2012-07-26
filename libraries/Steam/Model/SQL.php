@@ -103,12 +103,11 @@ class SQL
         $this->secondary[] = array('callback' => $callback, 'arguments' => $arguments);
     }
     
-    public function retrieve(&$select)
+    public function prepare(&$select)
     {
         if ($this->request->resource_id)
         {
             $select->where($this->key . ' = ' . $select->getAdapter()->quote($this->request->resource_id));
-            $this->response->total_items = 1;
         }
         else
         {
@@ -160,17 +159,17 @@ class SQL
             $this->count($select);
             $this->order($select);
         }
-        
+    }
+    
+    public function retrieve(&$select)
+    {
+        $this->prepare($select);
         $this->add_results($select);
         
         if ((int) $this->response->total_items)
-        {
             $this->response->status = 200;
-        }
         else
-        {
             $this->response->status = 204;
-        }
     }
     
     public function search(&$select)
@@ -265,7 +264,10 @@ class SQL
         $this->response->start_index    = $start_index;
         $this->response->total_results  = 0;
         
-        while ($row = $result->fetch()) $this->response->total_results += $row['row_count'];
+        if ($select_count->getPart('group'))
+            while ($row = $result->fetch()) $this->response->total_results += 1;
+        else
+            while ($row = $result->fetch()) $this->response->total_results += $row['row_count'];
     }
     
     public function order(&$select)
@@ -294,28 +296,34 @@ class SQL
     {
         if (isset($this->secondary[0]))
         {
-            $result = $select->query();
-            $count = 0;
+            $mysql  = $select->getAdapter()->getConnection();
+            $result = mysqli_query($mysql, (string) $select, \MYSQLI_USE_RESULT);
+            $count  = 0;
             
-            while ($row = $result->fetch())
+            if ($result)
             {
-                $count++;
-                $item = $this->response->items->addChild('item');
-                
-                foreach ($row as $name => $value)
+                while ($row = $result->fetch_assoc())
                 {
-                    if ($value === '')
+                    $count++;
+                    $item = $this->response->items->addChild('item');
+                    
+                    foreach ($row as $name => $value)
                     {
-                        $value = NULL;
+                        if ($value === '')
+                        {
+                            $value = NULL;
+                        }
+                        
+                        $item->addChild($name, $value);
                     }
                     
-                    $item->addChild($name, $value);
+                    foreach ($this->secondary as $secondary)
+                    {
+                        call_user_func_array($secondary['callback'], array_merge(array(&$item, &$row), $secondary['arguments']));
+                    }
                 }
                 
-                foreach ($this->secondary as $secondary)
-                {
-                    call_user_func_array($secondary['callback'], array_merge(array(&$item, &$row), $secondary['arguments']));
-                }
+                $result->free();
             }
         }
         else

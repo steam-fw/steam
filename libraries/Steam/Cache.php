@@ -64,7 +64,7 @@ class Cache
      */
     public static function set($context, $identifier, $value, $tags = NULL, $lifetime = false)
     {
-        if (!self::$cache->save($value, md5(self::format_context($context) . $identifier), self::format_tags($tags), $lifetime))
+        if (!self::$cache->save($value, self::hash(self::format_context($context) . $identifier), self::format_tags($tags), $lifetime))
         {
             throw new \Steam\Exception\Cache(gettext('There was a problem storing data in the cache.'));
         }
@@ -81,7 +81,7 @@ class Cache
      */
     public static function get($context, $identifier)
     {
-        if (($value = self::$cache->load(md5(self::format_context($context) . $identifier))) === false)
+        if (($value = self::$cache->load(self::hash(self::format_context($context) . $identifier))) === false)
         {
             throw new \Steam\Exception\Cache(gettext('The specified data identified by "' . self::format_context($context) . $identifier . '" does not exist within the cache.'));
         }
@@ -100,7 +100,7 @@ class Cache
      */
     public static function delete($context, $identifier)
     {
-        if (!self::$cache->remove(md5(self::format_context($context) . $identifier)))
+        if (!self::$cache->remove(self::hash(self::format_context($context) . $identifier)))
         {
             throw new \Steam\Exception\Cache(gettext('There was a problem deleting the stored data.'));
         }
@@ -163,6 +163,17 @@ class Cache
         foreach ($tags as &$tag) $tag = self::format_context($tag);
         
         return $tags;
+    }
+    
+    /**
+     * Hashes the cache identifier to allow any characters
+     *
+     * @return string hash
+     * @param string identifier
+     */
+    protected static function hash($string)
+    {
+        return md5($string);
     }
 }
 
