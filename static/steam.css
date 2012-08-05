@@ -1,0 +1,39 @@
+body
+{
+    font-family: sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+#header
+{
+    color: #444;
+    font-style: italic;
+    font-size: 12px;
+    letter-spacing: 1px;
+    padding: 0 16px;
+    border-bottom: 2px solid #444;
+}
+
+nav
+{
+    background-color: black;
+    padding: 4px 16px;
+}
+
+nav a
+{
+    color: white;
+    font-size: 13px;
+    padding: 3px;
+}
+
+#content
+{
+    padding: 16px;
+}
+
+#content p
+{
+    max-width: 800px;
+}
