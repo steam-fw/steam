@@ -61,13 +61,15 @@ img.center
 
 pre.code
 {
-    background-color: silver;
+    padding: 5px;
+    background-color: #f0f0f0;
     color: black;
     font-family: monospace;
 }
 
 pre.cli
 {
+    padding: 5px;
     background-color: black;
     color: white;
     font-family: monospace;
