@@ -36,9 +36,39 @@ nav a.active
 #content
 {
     padding: 16px;
+    max-width: 800px;
 }
 
-#content p
+img.left
 {
-    max-width: 800px;
+    float: left;
+    margin: 5px;
+    margin-left: 0;
+}
+
+img.right
+{
+    float: right;
+    margin: 5px;
+    margin-right: 0;
+}
+
+img.center
+{
+    display: block;
+    margin: 5px auto;
+}
+
+pre.code
+{
+    background-color: silver;
+    color: black;
+    font-family: monospace;
+}
+
+pre.cli
+{
+    background-color: black;
+    color: white;
+    font-family: monospace;
 }
