@@ -28,6 +28,11 @@ nav a
     padding: 3px;
 }
 
+nav a.active
+{
+    color: orange;
+}
+
 #content
 {
     padding: 16px;

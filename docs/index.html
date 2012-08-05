@@ -1,0 +1,446 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta http-equiv="Content-Type" content="application/xhtml+xml; charset=utf-8"/>
+        <title>Steam Framework Documentation</title>
+        <meta name="description" content=""/>
+        <link rel="stylesheet" type="text/css" href="../static/steam.css"/>
+    </head>
+    <body>
+        <nav>
+            <a href="/">introduction</a>
+            <a href="/docs/" class="active">documentation</a>
+            <a href="https://github.com/shaddyz/steam/tarball/master">download</a>
+            <a href="https://github.com/shaddyz/steam/issues">issues</a>
+            <a href="https://github.com/shaddyz/steam">source code</a>
+        </nav>
+        <div id="header">
+            <img src="../static/steam-logo.png" alt="Steam"/> &nbsp; An elegant PHP web application framework
+        </div>
+        <div id="content">
+            <h1>Steam Framework Documentation</h1>
+            <h2><a name="contents">Contents</a></h2>
+            <ul>
+                <li><a href="#getting-started">Getting Started</a>
+                    <ul>
+                    <li><a href="#getting-started/requirements">Server Requirements</a></li>
+                    <li><a href="#getting-started/installation">Installation</a></li>
+                    <li><a href="#getting-started/organization">File Organization</a></li>
+                    <li><a href="#getting-started/configuration">Global Configuration</a></li>
+                    <li><a href="#getting-started/file-caching">Enabling File-based Caching</a></li>
+                    <li><a href="#getting-started/database">Adding Database Support</a></li>
+                    <li><a href="#getting-started/firebug-logging">Error Logging with FireBug/FirePHP</a></li>
+                    </ul>
+                </li>
+                <li><a href="#applications">Applications</a>
+                    <ul>
+                        <li><a href="#applications/skeleton">Application Skeleton</a>
+                        <li><a href="#applications/portals">Portals / URI Routing</a>
+                        <li><a href="#applications/configuration">Application Configuration</a>
+                    </ul>
+                </li>
+                <li><a href="#views">Views</a>
+                    <ul>
+                        <li><a href="#views/basic">Basic Page / No Layout Engine</a></li>
+                        <li><a href="#views/normal">Normal View / With Layout Engine</a></li>
+                        <li><a href="#views/common">Code Reuse across Similar Views</a></li>
+                        <li><a href="#views/custom-uris">Views with custom URI handling</a></li>
+                    </ul>
+                </li>
+                <li><a href="#templates">Templates</a>
+                    <ul>
+                        <li><a href="#templates/basic-html">Basic HTML Template</a></li>
+                        <li><a href="#templates/html">Complete HTML Template</a></li>
+                        <li><a href="#templates/email">Email Template</a></li>
+                    </ul>
+                </li>
+                <li><a href="#widgets">Widgets</a>
+                    <ul>
+                        <li><a href="#widgets/menu">Menu Widget</a></li>
+                        <li><a href="#widgets/table">Table Widget</a></li>
+                        <li><a href="#widgets/static-resources">Widget-specific Javascript/CSS</a></li>
+                    </ul>
+                </li>
+                <li><a href="#models">Models</a>
+                    <ul>
+                        <li><a href="#models/simple-xml">Simple XML Basics</a></li>
+                        <li><a href="#models/array">Array-driven Model</a></li>
+                        <li><a href="#models/file">File-driven Model</a></li>
+                        <li><a href="#models/db">Database-driven Model</a></li>
+                        <li><a href="#models/sql">Database-driven Model with MySQL (shortcut)</a></li>
+                        <li><a href="#models/api">3rd Party Web Service Interface Model (API Translation)</a></li>
+                        <li><a href="#models/permissions">Model Permissions</a></li>
+                        <li><a href="#models/api">Manipulation via RESTful API</a></li>
+                        <li><a href="#models/ajax">Ajax manipulation using Steam.js</a></li>
+                        <li><a href="#models/extending">Extending the Model Class (shortcut)</a></li>
+                        <li><a href="#models/formats">Output Formats / Non-XML Representations</a></li>
+                    </ul>
+                </li>
+                <li><a href="#actions">Actions</a>
+                    <ul>
+                        <li><a href="#actions/forms">HTML Form Submission</a></li>
+                        <li><a href="#actions/javascript">Javascript Services</a></li>
+                        <li><a href="#actions/downloads">File Downloads</a></li>
+                        <li><a href="#actions/cronjobs">Cronjobs</a></li>
+                    </ul>
+                </li>
+                <li><a href="#static-resources">Static Resources</a>
+                    <ul>
+                        <li><a href="#static-resources/basics">Basics</a></li>
+                        <li><a href="#static-resources/minify">Auto Minify CSS</a></li>
+                        <li><a href="#static-resources/minify">Auto Minify CSS</a></li>
+                        <li><a href="#static-resources/caching">Browser Caching + Fingerprinting</a></li>
+                    </ul>
+                </li>
+                <li><a href="#advanced-topics">Advanced Topics</a>
+                    <ul>
+                        <li><a href="#advanced-topics/sessions">Sessions</a></li>
+                        <li><a href="#advanced-topics/notifications">Notification System</a></li>
+                        <li><a href="#advanced-topics/custom-error-pages">Custom Error Pages</a></li>
+                        <li><a href="#advanced-topics/widget-caching">Widget Caching</a></li>
+                        <li><a href="#advanced-topics/dialogs">Working with jQuery UI Dialogs</a></li>
+                        <li><a href="#advanced-topics/nested-transactions">Nested Transactions with MySQL</a></li>
+                        <li><a href="#advanced-topics/db-load-balancing">Database Load Balancing</a></li>
+                        <li><a href="#advanced-topics/syslog">Working with Syslog</a></li>
+                        <li><a href="#advanced-topics/email-redirection">Redirecting email in non-production environments</a></li>
+                    </ul>
+                </li>
+            </ul>
+            <h2><a name="getting-started">Getting Started</a></h2>
+            
+            <h3><a name="getting-started/requirements">Server Requirements</a></h3>
+            <ul>
+                <li>UNIX-like Operating System</li>
+                <li>Apache HTTP Server (w/ mod_rewrite)</li>
+                <li>PHP 5.3 series or newer</li>
+            </ul>
+            
+            <h3><a name="getting-started/installation">Installation</a></h3>
+            
+            <h3><a name="getting-started/organization">File Organization</a></h3>
+            <p>Let's take a look at how files and directories are organized. We will start with the entry point "index.php". Apache hands all requests to this file initially. The entry point then includes "functions.php" and "libraries/Steam.php". "Steam.php" is the heart of the framework, and it will load the global configuration file "config.php" and load the necessary subsystems and pass execution to a resource. You can also find a copy of the license, the command-line interface for Steam, and a version definition file in the root directory.</p>
+            <p>The root directory contains two subdirectories of interest. The first is the "libraries" directory which contains all general purpose classes such as the Steam, Zend, and Minify classes. You can also add additional libraries of classes here if you wish. The other directory, "apps", contains all the application specific files which we will examine more closely.</p>
+            <p>In the apps directory, we can find a unique "global" app directory and the included "example" application. The global app currently provides global error pages. The organization of application directories are further dissected in <a href="#applications/skeleton">Application Skeleton</a> section.</p>
+            
+            <h3><a name="getting-started/configuration">Global Configuration</a></h3>
+            <p>Steam's configuration file is a PHP script. This makes it easy to add conditional configuration or portal generation loops. Please refer to the documentation embedded in the configuration file for detailed explanation of each setting. If this is your first time using Steam, I recommend using most of the defaults. However, most people will want to enable caching and define a database which are covered in the next sections.</p>
+            
+            
+            <h3><a name="getting-started/file-caching">Enabling File-based Caching</a></h3>
+            <p>I highly recommend using a data cache provided by <a href="http://framework.zend.com/manual/en/zend.cache.html" target="_blank">Zend Cache</a>. Zend Cache enables many performance improvements and useful features such as static resource caching. Since anyone should be able to support file-based caching, I will explain how to configure it.</p>
+            <p>First, we need to create a directory for caching and give the web server permissions to write to it. Then we will enable support in the global configuration file. If you have installed Steam into /var/www/steam, then these are the commands you would use to create the cache directory:</p>
+            <pre>
+$ cd /var/www/steam
+$ mkdir cache
+$ chmod g+w,o+w cache
+            </pre>
+            
+            <p>Next, open the configuration file at <strong>/var/www/steam/config.php</strong> and update the following values:</p>
+            <pre>
+$cache_backend = 'File';
+$cache_params  = array('cache_dir' => str_replace('config.php', 'cache/', __FILE__));
+            </pre>
+            
+            <h3><a name="getting-started/database">Adding Database Support</a></h3>
+            <p>The majority of users will probably want to use an SQL database. This can be done on a per application basis, or globally depending on where you define the connection parameters. If you are using a MySQL database, I recommend using my extended database adapter which fixes a couple of issues with the Zend adapter. The configuration will look like this (you may not need the socket parameter, Gentoo users will most likely use it):</p>
+            <pre>
+$db_params        = array(
+    'write'  => array(
+        array(
+            'host'     => 'localhost',
+            'socket'   => '/var/run/mysqld/mysqld.sock',
+            'username' => 'root',
+            'password' => '',
+            'dbname'   => 'my_database',
+            'adapterNamespace' => 'Steam_Db_Adapter'
+            ),
+    ),
+    
+    'read'   => array(
+    ),
+    
+    'search' => array(
+    ),
+);
+            </pre>
+            
+            <h3><a name="getting-started/file-caching">Enabling File-based Caching</a></h3>
+            <p>One of the most time-saving features of Steam is native integration with FireBug's console. This will discretely log most non-serious errors via HTTP headers to FireBug without screwing up script output. You will need to install FireBug and FirePHP to use this invaluable feature.</p>
+            
+            <p><a href="#contents">Contents</a></p>
+            
+            <h2><a name="applications">Applications</a></h2>
+            <p>A single instance of Steam can simultaneously support many applications. This reduces duplication of code and allows applications to share resources. An application typically corresponds to a domain. However, a single domain can route to many applications or multiple domains can point to a single application. How you decide to segment your project will depend on how many developers/teams are working on it and the level of coupling between various components.</p>
+            <h3><a name="applications/skeleton">Application Skeleton</a></h3>
+            <p>For the purpose of this example, let's say we are developing a blog application which we will simply call "blog". The application will define the following files and directories:</p>
+            <pre>
+apps/blog/
+apps/blog/blog.php
+apps/blog/config.php
+apps/blog/views/             (optional)
+apps/blog/views/default.php  (optional)
+apps/blog/templates/         (optional)
+apps/blog/widgets/           (optional)
+apps/blog/models/            (optional)
+apps/blog/actions/           (optional)
+apps/blog/static/            (optional)
+apps/blog/static/script/     (optional)
+apps/blog/static/css/        (optional)
+apps/blog/static/images/     (optional)
+            </pre>
+            
+            <p>Once you've created the directories and files, open apps/blog/blog.php in a text editor and define the following class:</p>
+            
+            <pre>
+&lt;?php
+
+class BlogApplication extends \Steam\Application
+{
+    public function initialize()
+    {
+    }
+}
+
+?&gt;
+            </pre>
+            
+            <p>The class name must be constructed by taking the app name, in our case "blog", capitalizating the first letter, and appending "Application" to the end. Application should be lowercase words which start with letters and contain letters, numbers, or the underscore. If we named the application "blogging_tool", then the class name would be "Blogging_toolApplication".</p>
+            <p>The Application class' initialize method is the first code which is executed after the application configuration file is loaded. Put any application-wide code here such as automatic login with "remember me" cookies, application-wide permissions checks, or session initialization. You can also include other scripts here.</p>
+            
+            <h3><a name="applications/portals">Portals / URI Routing</a></h3>
+            <p>In order to access the application, we must define one or more portals in the global configuration. There must be at least one portal for every resource type you want to use. Normally, this means we will define four portals per application. Our blog application portals would look like this:</p>
+            
+            <pre>
+$portals = array(
+    array(
+        'app'    => 'blog',
+        'domain' => '~^.*$~',
+        'path'   => '~^/actions/(.*)~',
+        'type'   => 'action',
+    ),
+    array(
+        'app'    => 'blog',
+        'domain' => '~^.*$~',
+        'path'   => '~^/models/(.*)~',
+        'type'   => 'model',
+    ),
+    array(
+        'app'    => 'blog',
+        'domain' => '~^.*$~',
+        'path'   => '~^/static/(.*)~',
+        'type'   => 'static',
+    ),
+    array(
+        'app'    => 'blog',
+        'domain' => '~^.*$~',
+        'path'   => '~^.*~',
+        'type'   => 'view',
+    ),
+);
+            </pre>
+            
+            <p>Each portal is defined by an array of parameters. The app simply corresponds to the name of the app for which the portal references. The domain is a regular expression pattern which will be used to match against the request domain and, similarly, the path is a regex pattern which will be used to match against the request resource path. In the above example, the domain pattern will match any domain. The last parameter, "type", defines what type of resource will be dispatched when the portal matches. This can be one of the four resource types: view, model, action, or static. Portals are scanned for matches in the order which they appear. Therefore, it is important that the most general pattern is used last. In our example, the view pattern will match any path and that is why it must be last. Here are other sample portals which may be useful:</p>
+            
+            <pre>
+array(
+    'app'    => 'blog',
+    'domain' => '/^(dev\\.|www\\.)?example\\.com$/i',
+    'path'   => '~^/assets/(.*)~',
+    'type'   => 'static',
+),
+
+array(
+    'app'      => 'blog',
+    'domain'   => '/^(dev\\.)?blog\\.example\\.com$/i',
+    'path'     => '~^/dialog/(.*)~',
+    'type'     => 'view',
+    'resource' => 'dialog',
+),
+            </pre>
+            
+            <p>In the first example, I have changed the static resource web path to be assets. I have also limited the accepted domains to either dev.example.com, www.example.com, or example.com. In the second example, I have instructed Steam to always dispatch requests to the dialog view when the requested URI is http://blog.example.com/dialog/something. You can read more about how to use the resource parameter in the <a href="#views/custom-uris">Views with custom URI handling</a> section.</p>
+            
+            <h3><a name="applications/configuration">Application Configuration</a></h3>
+            <p>In addition to the global configuration, each application has its own configuration file which has the ability of overriding some of the global settings or adding your own custom settings or constants. Applications can override the following settings:</p>
+            <ul>
+                <li>locale</li>
+                <li>timezone</li>
+                <li>base_uri</li>
+                <li>error_page</li>
+                <li>static_maxage</li>
+                <li>static_path</li>
+                <li>fingerprinting</li>
+                <li>cache_session</li>
+                <li>db_adapter</li>
+                <li>db_params</li>
+            </ul>
+            
+            <p>Applications can also specify additional log writers and libraries.</p>
+            
+            <p><a href="#contents">Contents</a></p>
+            
+            <h2><a name="views">Views</a></h2>
+            <p>Views are the primary visual components of any Steam application. The most important view is the default view, "default.php". The default view is loaded when a user accesses the web root of your application (index.php analog). This only applies to the root directory, and not subdirectories.</p>
+            
+            <h3><a name="views/basic">Basic Page / No Layout Engine</a></h3>
+            <p>The most basic view is straight text or HTML. In this way, Steam can be used to only provide URI routing functionality to an otherwise static website. Here is an example of a view used in this way:</p>
+            
+            <pre>
+&lt;html&gt;
+    &lt;head&gt;
+        &lt;title>Static HTML&lt;/title&gt;
+    &lt;/head&gt;
+    &lt;body&gt;
+        &lt;p>Hello World!&lt;/p&gt;
+    &lt;/body&gt;
+&lt;/html&gt;
+            </pre>
+            
+            <p>We can add PHP code and links to static resources as well:</p>
+            
+            <pre>
+&lt;html&gt;
+    &lt;head&gt;
+        &lt;title&gt;Dynamic HTML&lt;/title&gt;
+        &lt;link rel=&quot;stylesheet&quot; type=&quot;text/css&quot; href=&quot;&lt;?php print \Steam\StaticResource::uri('css/hello-world.css') ?&gt;&quot;/&gt;
+    &lt;/head&gt;
+    &lt;body&gt;
+        &lt;p>Hello World! Today is &lt;?php print date('Y-m-d') ?&gt;.&lt;/p&gt;
+    &lt;/body&gt;
+&lt;/html&gt;
+            </pre>
+            
+            <p>We can also access models and just about anything in this method. However, to optimize code reuse, it is usually best to utilize the layout engine as we will see in the next section.</p>
+            
+            <h3><a name="views/normal">Normal View / With Layout Engine</a></h3>
+            <p>Steam's View layout engine enables us to create richer interfaces by introducing a finer unit of visual representation: the widget. A widget is a user-defined visual component which is laid out into a template with the view. A view looks dramatically different when it's utilizing the layout engine (MVC controller analog). Here is an example:</p>
+            
+            <pre>
+&lt;?php
+
+$template = 'standard.html';
+$text     = array('title' => 'Hello World');
+$layout   = array(
+    'header'  => array('logo', 'login-box', 'menu'),
+    'sidebar' => array('user-avatar', 'activity-feed'),
+    'content' => array('blog-posts'),
+);
+
+?&gt;
+            </pre>
+            
+            <p>Every view which utilizes the layout engine must define these three variables: template, text, and layout. The text variable defines character strings to be inserted in the specified template blocks. The layout variable is a multi-demensional associative array which defines ordered lists of widgets to insert in the specified template blocks. Additionally, you can define javascript and css to include for this view.</p>
+            
+            <pre>
+&lt;?php
+
+$template = 'standard.html';
+$text     = array('title' => 'Hello World');
+$layout   = array(
+    'header'  => array('logo', 'login-box', 'menu'),
+    'sidebar' => array('user-avatar', 'activity-feed'),
+    'content' => array('blog-posts'),
+);
+
+\Steam\View::js('http://code.jquery.com/jquery-1.7.2.min.js');
+\Steam\View::js('hello-world');
+\Steam\View::css('hello-world');
+
+?&gt;
+            </pre>
+            <p>The additional calls will add two script elements and one link element. If a relative path is provided to the js or css static methods, it will assume the javascript is located at apps/blog/static/script/hello-world.js and the css at apps/blog/static/css/hello-world.css.</p>
+            
+            <h3><a name="views/common">Code Reuse across Similar Views</a></h3>
+            <p>Many views typically display the same widgets in the same places and use the same template. For instance, our blog application may have the same banner and menu on every page. So let's simplify the addition of new similar views. First, let's create a script and call it "common-view.php" and place it in the application directory. Now, we can include it in our view and add additional view-specific text and widgets. Here is our common-view.php:</p>
+            
+            <pre>
+&lt;?php
+
+$template = 'standard.html';
+$text     = array('title' => 'Blog');
+$layout   = array(
+    'header'  => array('logo', 'login-box', 'menu'),
+    'sidebar' => array('user-avatar', 'activity-feed'),
+    'content' => array(),
+);
+
+\Steam\View::js('http://code.jquery.com/jquery-1.7.2.min.js');
+\Steam\View::js('hello-world');
+\Steam\View::css('hello-world');
+
+?&gt;
+            </pre>
+            
+            <p>And, this is our simplified view:</p>
+            
+            <pre>
+&lt;?php
+
+include \Steam::app_path('common-view.php');
+
+$text['title'] = 'Hello World';
+$layout['content'][] = 'blog-posts';
+
+?&gt;
+            </pre>
+            <p>The example above introduces an important static method provided by the Steam class: app_path(). This method will generate an absolute filesystem path to the desired file in the application directory. The Steam class provides the path(), app_path(), uri(), full_uri(), and this_uri() static methods for properly generating filesystem and web paths. Remember to always use the appropriate method.</p>
+            
+            <h3><a name="views/custom-uris">Views with custom URI handling</a></h3>
+            <p>Portals accept an optional parameter "resource" which can map many similar URI's to a single view. This allows us to make extra friendly URI's.</p>
+            <p>Suppose we want to use textual identifiers to link to individual entries in our blog application. Let's say we want our URI's to look like this:</p>
+            
+            <ul>
+                <li>http://blog.example.com/post/hello-world</li>
+                <li>http://blog.example.com/post/what-doth-life</li>
+                <li>http://blog.example.com/post/goodbye-cruel-world</li>
+            </ul>
+            
+            <p>Normally, these would map to three different view scripts. However, we really only need a single view to handle all three of these requests. Let's define a portal to accomplish this:</p>
+            <pre>
+array(
+    'app'      => 'blog',
+    'domain'   => '~^blog\\.example\\.com$~i',
+    'path'     => '~^/post/(.*)~',
+    'type'     => 'view',
+    'resource' => 'post',
+),
+            </pre>
+            
+            <p>In our view, we will want to use the last token of the path to identify which post to retrieve. We use the this_resource_param() static method of the Steam class to grab that piece of data. this_resource_param() will return the part of the URI which matches the first subpattern of the path pattern. In our example above, it is the "(.*)" part of the pattern. Now we can finish our view:</p>
+            
+            <pre>
+&lt;?php
+
+include \Steam::app_path('common-view.php');
+
+$text['title'] = 'Hello World';
+$layout['content'][] = 'blog-posts';
+
+$_GET['text_id'] = \Steam::this_resource_param();
+?&gt;
+            </pre>
+            <p>There are multiple ways to use the resource parameter. I have set it to the _GET to behave as if it was part of the original request making our friendly request URI equivalent to something like: http://blog.example.com/post?text_id=hello-world. We can then access the _GET variable in the "blog-posts" widget to display the appropriate post.</p>
+            
+            <p><a href="#contents">Contents</a></p>
+            
+            <h2><a name="templates">Templates</a></h2>
+            <p><a href="#contents">Contents</a></p>
+            
+            <h2><a name="widgets">Widgets</a></h2>
+            <p><a href="#contents">Contents</a></p>
+            
+            <h2><a name="models">Models</a></h2>
+            <p><a href="#contents">Contents</a></p>
+            
+            <h2><a name="actions">Actions</a></h2>
+            <p><a href="#contents">Contents</a></p>
+            
+            <h2><a name="static-resources">Static Resources</a></h2>
+            <p><a href="#contents">Contents</a></p>
+            
+            <h2><a name="advanced-topics">Advanced Topics</a></h2>
+            <p><a href="#contents">Contents</a></p>
+        </div>
+    </body>
+</html>

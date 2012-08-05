@@ -9,8 +9,8 @@
     </head>
     <body>
         <nav>
-            <a href="/">introduction</a>
-            <a href="/docs">documentation</a>
+            <a href="/" class="active">introduction</a>
+            <a href="/docs/">documentation</a>
             <a href="https://github.com/shaddyz/steam/tarball/master">download</a>
             <a href="https://github.com/shaddyz/steam/issues">issues</a>
             <a href="https://github.com/shaddyz/steam">source code</a>
@@ -33,26 +33,6 @@
                 <li>Accomplish the goals with the least amount of new code</li>
             </ul>
             <h2>Let's unleash the full potential of PHP</h2>
-            <pre><![CDATA[
-            <table border="1">
-                <thead>
-                    <tr>
-                        <th>Title</th>
-                        <th>Author</th>
-                        <th>Publication Year</th>
-                    </tr>
-                </thead>
-                <tbody>
-                <?php foreach (\Steam\Model::retrieve('book') as $book) { ?>
-                    <tr>
-                        <td><a href="<?php print \Steam::uri('/book/view?id=' . $book->id) ?>"><?php print $book->title ?></a></td>
-                        <td><?php print $book->author ?></td>
-                        <td><?php print $book->publication_year ?></td>
-                    </tr>
-                <?php } ?>
-                </tbody>
-            </table>
-            ]]></pre>
         </div>
     </body>
 </html>
