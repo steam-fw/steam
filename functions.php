@@ -87,41 +87,6 @@ function unlink_r($directory)
     }
 }
 
-/**
- * the inverse of http_build_query
- *
- * @return array
- * @return string query string
- * @return string separator
- */
-function http_parse_query($query, $separator = NULL)
-{
-    if (empty($query)) return array();
-    if (is_null($separator)) $separator = ini_get('arg_separator.output');
-    
-    $pairs = explode($separator, $query);
-    $array = array();
-    
-    foreach ($pairs as $pair)
-    {
-        $kv  = explode('=', $pair);
-        $key = urldecode($kv[0]);
-        $val = isset($kv[1]) ? urldecode($kv[1]) : NULL;
-        
-        if (preg_match('~([^\\[\\]]+)((\\[[^\\[\\]]*\\])+)$~', $key, $matches))
-        {
-            $keys = array($matches[1]);
-            preg_match_all('~\\[([^\\[\\]]*)\\]~', $matches[2], $matches);
-            $keys = array_merge($keys, $matches[1]);
-            while (($key = array_pop($keys)) !== NULL) $val = array($key => $val);
-            $array = array_merge_recursive($array, $val);
-        }
-        else $array[$key] = $val;
-    }
-    
-    return $array;
-} 
-
 if (!function_exists('gettext'))
 {
     /**
@@ -133,88 +98,6 @@ if (!function_exists('gettext'))
     function gettext($string)
     {
         return $string;
-    }
-}
-
-/**
- * implode function for string representations of arrays in xml
- *
- * @return xarray
- * @param string separator
- * @param array
- */
-function ximplode($separator, $array)
-{
-    $array = current($array);
-    
-    if (!is_array($array))
-    {
-        return (string) $array;
-    }
-    
-    $first = true;
-    $string = '';
-    
-    foreach ($array as $item)
-    {
-        if ($first)
-        {
-            $string .= $item;
-            $first = false;
-        }
-        else
-        {
-            $string .= $separator . $item;
-        }
-    }
-    
-    return $string;
-}
-
-/**
- * in array function for string representations of arrays in xml
- *
- * @return bool
- * @param string needle
- * @param xarray haystack
- */
-function xin_array($needle, $haystack)
-{
-    foreach ($haystack as $hay)
-    {
-        if ((string) $hay == (string) $needle)
-        {
-            return true;
-        }
-    }
-    
-    return false;
-}
-
-/**
- * converts an xarray into a normal array
- *
- * @return array
- * @param xarray
- */
-function xarray($xarray)
-{
-    $xarray = current($xarray);
-    
-    if (is_array($xarray))
-    {
-        $array = array();
-        
-        foreach ($xarray as $element)
-        {
-            $array[] = $element;
-        }
-        
-        return $array;
-    }
-    else
-    {
-        return array((string) $xarray);
     }
 }
 

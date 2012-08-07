@@ -1,8 +1,3 @@
-<?php
-
-$books = \Steam\Model::retrieve('book');
-
-?>
 <table border="1">
     <thead>
         <tr>
@@ -12,7 +7,7 @@ $books = \Steam\Model::retrieve('book');
         </tr>
     </thead>
     <tbody>
-    <?php foreach ($books as $book) { ?>
+    <?php foreach (\Steam\Model::retrieve('book') as $book) { ?>
         <tr>
             <td><a href="<?php print \Steam::uri('/book/view?id=' . $book->id) ?>"><?php print $book->title ?></a></td>
             <td><?php print $book->author ?></td>

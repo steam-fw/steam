@@ -452,7 +452,7 @@ class Steam
                 if (isset($resource[1]))
                 {
                     $resource_name = $resource[0];
-                    $request_vars = http_parse_query($resource[1]);
+                    parse_str($resource[1], $request_vars);
                     
                     foreach ($request_vars as $key => $value)
                     {

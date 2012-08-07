@@ -164,7 +164,7 @@ class Model
                 
                 if ($method == 'delete' and $request->count() === 0)
                 {
-                    $item = http_parse_query((string) $request->parameters);
+                    parse_str((string) $request->parameters, $item);
                     $request->add_item($item);
                 }
             }
@@ -231,7 +231,12 @@ class Model
                 }
                 else
                 {
-                    $item = isset($request->parameters) ? (object) http_parse_query((string) $request->parameters) : NULL;
+                    if (isset($request->parameters))
+                    {
+                        parse_str((string) $request->parameters), $item);
+                        $item = (object) $item;
+                    }
+                    else $item = NULL;
                     
                     // check to see if the client is allowed to access the resource
                     if (!$model_class::is_allowed($request->method, $item))

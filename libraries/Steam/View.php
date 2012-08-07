@@ -266,7 +266,6 @@ class View
         
         if (!empty($output))
         {
-            \Steam\Logger::log('Output buffer not empty, outputting contents directly');
             \Steam\Event::trigger('steam-response');
             if (ini_get('expose_php'))
                 $_response->setHeader('X-Powered-By', 'PHP/' .  phpversion() . ' Steam/' . \Steam::version(), true);

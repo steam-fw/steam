@@ -12,7 +12,7 @@ class BookModel extends \Steam\Model
     
     protected static function _retrieve(\Steam\Model\Request &$request, \Steam\Model\Response &$response)
     {
-        $parameters = http_parse_query((string) $request->parameters);
+        parse_str((string) $request->parameters, $parameters);
         
         if (isset($parameters['id']))
         {
@@ -41,7 +41,7 @@ class BookModel extends \Steam\Model
         $select = \Steam\Db::read()->select()
             ->from(array('b' => 'books'));
         
-        $parameters = http_parse_query((string) $request->parameters);
+        parse_str((string) $request->parameters, $parameters);
         
         foreach ($parameters as $field => $value)
         {

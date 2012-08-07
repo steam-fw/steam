@@ -73,7 +73,7 @@ class SQL
         $this->schema   = $schema;
         
         if (!empty($request->parameters))
-            $this->params = http_parse_query((string) $request->parameters);
+            parse_str((string) $request->parameters, $this->params);
         
         foreach ($this->special_fields as $field)
         {

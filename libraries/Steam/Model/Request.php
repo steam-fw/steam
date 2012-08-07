@@ -280,14 +280,10 @@ class Request implements \Iterator, \ArrayAccess
         }
         else
         {
-            $item = array();
+            $item = $this->offsetExists(0) ? (array) $this->offsetGet(0) : array();
             
-            if ($this->offsetExists(0))
-            {
-                $item = (array) $this->offsetGet(0);
-            }
-            
-            return array_merge(http_parse_query((string) $this->sxe->parameters), $item);
+            parse_str((string) $this->sxe->parameters, $parameters);
+            return array_merge($parameters, $item);
         }
     }
     
