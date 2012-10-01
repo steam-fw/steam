@@ -2,7 +2,7 @@
 /**
  * Steam Logging Class
  *
- * This class provides an interface to Zend_Log.
+ * This class provides an interface to Zend\Log.
  *
  * Copyright 2008-2012 Shaddy Zeineddine
  *
@@ -33,7 +33,7 @@ namespace Steam;
 class Logger
 {
     /**
-     * An instance of Zend_Log.
+     * An instance of Zend\Log\Logger.
      */
     protected static $logger;
     
@@ -43,13 +43,13 @@ class Logger
     protected static $writers = array();
     
     /**
-     * Creates an instance of Zend_Log with a default Null writer.
+     * Creates an instance of Zend\Log\Logger with a default Null writer.
      *
      * @return void
      */
     public static function initialize()
     {
-        self::$logger = new \Zend_Log(new \Steam\Log\Writer\PHP());
+        self::$logger = new \Zend\Log\Logger();
     }
     
     /**
@@ -60,15 +60,11 @@ class Logger
         switch (strtolower($writer))
         {
             case 'firebug':
-                $channel = \Zend_Wildfire_Channel_HttpHeaders::getInstance();
-                $channel->setRequest(\Steam::$request);
-                $channel->setResponse(\Steam::$response);
-                self::$writers['firebug'] = new \Zend_Log_Writer_Firebug();
+                self::$writers['firebug'] = new \Zend\Log\Writer\FirePhp();
                 self::add_writer(self::$writers['firebug']);
-                \Steam\Event::register('steam-response', array($channel, 'flush'));
                 break;
             case 'syslog':
-                self::$writers['syslog'] = new \Zend_Log_Writer_Syslog();
+                self::$writers['syslog'] = new \Zend\Log\Writer\Syslog();
                 self::add_writer(self::$writers['syslog']);
                 break;
         }
@@ -80,15 +76,15 @@ class Logger
      * @return void
      * @param object $writer Zend Log Writer
      */
-    public static function add_writer(\Zend_Log_Writer_Abstract $writer)
+    public static function add_writer(\Zend\Log\Writer\AbstractWriter $writer)
     {
         return self::$logger->addWriter($writer);
     }
     
     /**
-     * Returns the underlying Zend_Log object
+     * Returns the underlying Zend\Log\Logger object
      *
-     * @return object Zend_Log
+     * @return object Zend\Log\Logger
      */
     public static function get_logger()
     {
@@ -96,15 +92,15 @@ class Logger
     }
     
     /**
-     * Logs a message with the specified priority.
+     * Writes a message to the logs with the specified priority.
      *
      * @return void
      * @param string $message log message
      * @param integer $priority  message priority
      */
-    public static function log($message, $priority = NULL)
+    public static function write($message, $priority = NULL)
     {
-        if (is_null($priority)) $priority = \Zend_Log::INFO;
+        if (is_null($priority)) $priority = \Zend\Log\Logger::INFO;
         
         return self::$logger->log($message, $priority);
     }

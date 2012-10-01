@@ -268,8 +268,8 @@ class View
         {
             \Steam\Event::trigger('steam-response');
             if (ini_get('expose_php'))
-                $_response->setHeader('X-Powered-By', 'PHP/' .  phpversion() . ' Steam/' . \Steam::version(), true);
-            $_response->setHeader('Content-Type', $_content_type, true);
+                $_response->getHeaders()->addHeaderLine('X-Powered-By', 'PHP/' .  phpversion() . ' Steam/' . \Steam::version(), true);
+            $_response->getHeaders()->addHeaderLine('Content-Type', $_content_type, true);
             $_response->sendHeaders();
             
             unset($_content_type);
@@ -377,9 +377,9 @@ class View
         unset($_string);
         
         \Steam\Event::trigger('steam-response');
-        $_response->setHeader('Content-Type', $_content_type, true);
+        $_response->getHeaders()->addHeaderLine('Content-Type', $_content_type, true);
         if (ini_get('expose_php'))
-            $_response->setHeader('X-Powered-By', 'PHP/' .  phpversion() . ' Steam/' . \Steam::version(), true);
+            $_response->getHeaders()->addHeaderLine('X-Powered-By', 'PHP/' .  phpversion() . ' Steam/' . \Steam::version(), true);
         $_response->sendHeaders();
         
         unset($_content_type);

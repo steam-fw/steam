@@ -291,8 +291,6 @@ class Steam
     {
         // set the default values for all settings
         $environment    = '';
-        $locale         = 'en_US.utf8';
-        $timezone       = 'America/Los_Angeles';
         $base_uri       = '';
         $libraries      = '';
         $logs           = array('php');
@@ -315,8 +313,6 @@ class Steam
         self::$config = array(
             'base_dir'       => str_replace('libraries/Steam.php', '', __FILE__),
             'environment'    => $environment,
-            'locale'         => $locale,
-            'timezone'       => $timezone,
             'base_uri'       => $base_uri,
             'libraries'      => $libraries,
             'logs'           => $logs,
@@ -339,49 +335,38 @@ class Steam
     /**
      * Initializes the Steam environment by starting all necessary services
      * including the class autoloader, error and exception handlers, logging
-     * facilities, caching, localization and timezone support, session, database
-     * connections, and plugins.
+     * facilities, caching, session, database connections, and plugins.
      *
      * @return void
      */
     public static function initialize()
     {
-        // temporarily set the timezone to prevent errors
-        date_default_timezone_set('UTC');
+        // include the class loading manager
+        include \Steam::path('libraries/Steam/Loader.php');
         
-        // add the Steam library path to the include path
-        set_include_path(self::$config['base_dir'] . 'libraries' . PATH_SEPARATOR . get_include_path());
-        
-        // include the Loader classes
-        include_once 'Steam/Loader.php';
-        
-        // activate the autoloader and register the custom autoloader
+        // activate autoloading
         \Steam\Loader::initialize();
         
-        \Steam\Loader::register('Minify_', self::path('/libraries/'));
+        // register global libraries
+        foreach (self::$config['libraries'] as $library)
+            \Steam\Loader::register($library);
         
         // initialize error and exception handling
         \Steam\Error::initialize();
         
-        self::$request  = new \Zend_Controller_Request_Http();
-        self::$response = new \Zend_Controller_Response_Http();
+        self::$request  = new \Zend\Http\PhpEnvironment\Request();
+        self::$response = new \Zend\Http\PhpEnvironment\Response();
         
         // initialize logging services
         \Steam\Logger::initialize();
         
-        foreach (self::$config['logs'] as $writer)
-        {
-            \Steam\Logger::enable($writer);
-        }
+        foreach (self::$config['logs'] as $writer) \Steam\Logger::enable($writer);
         
         if (self::$config['cache_backend'])
         {
             // initialize caching with the configured backend and parameters
             \Steam\Cache::initialize(self::$config['cache_backend'], self::$config['cache_params']);
         }
-        
-        // initialize localization support
-        \Steam\Locale::initialize(self::$config['locale'], self::$config['timezone']);
         
         if (self::$config['db_adapter'])
         {
@@ -407,7 +392,7 @@ class Steam
     public static function map_request()
     {
         // construct the complete request URI
-        $request_uri = \Zend_Uri_Http::fromString('http' . ((isset($_SERVER['HTTPS']) and $_SERVER['HTTPS']) ? 's' : '') . '://' . (($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : $_SERVER['SERVER_ADDR']) . $_SERVER['REQUEST_URI']);
+        $request_uri = \Zend\Uri\UriFactory::factory('http' . ((isset($_SERVER['HTTPS']) and $_SERVER['HTTPS']) ? 's' : '') . '://' . (($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : $_SERVER['SERVER_ADDR']) . $_SERVER['REQUEST_URI']);
         
         // define/intialize variables
         $matches;
@@ -579,8 +564,6 @@ class Steam
         try
         {
             // set the current values for settings
-            $locale         = self::$config['locale'];
-            $timezone       = self::$config['timezone'];
             $base_uri       = self::$config['base_uri'];
             $error_page     = self::$config['error_page'];
             $static_maxage  = self::$config['static_maxage'];
@@ -613,18 +596,6 @@ class Steam
                 }
             }
             
-            // if the timezone changed, update it
-            if ($timezone != self::$config['timezone'])
-            {
-                \Steam\Locale::set_timezone($timezone);
-            }
-            
-            // if the locale changed, update it
-            if ($locale != self::$config['locale'])
-            {
-                \Steam\Locale::set_locale($locale);
-            }
-            
             // if there is a different db adapter, update it
             if (isset($db_adapter) and isset($db_params))
             {
@@ -635,8 +606,6 @@ class Steam
             }
             
             // update the settings in the static class variable
-            self::$config['locale']         = $locale;
-            self::$config['timezone']       = $timezone;
             self::$config['base_uri']       = $base_uri;
             self::$config['error_page']     = $error_page;
             self::$config['static_maxage']  = $static_maxage;

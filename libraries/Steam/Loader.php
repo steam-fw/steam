@@ -2,7 +2,7 @@
 /**
  * Steam Class Loader Class
  *
- * This class automatically loads class files when they are needed.
+ * This class manages class autoloading.
  *
  * Copyright 2008-2012 Shaddy Zeineddine
  *
@@ -30,78 +30,86 @@
 
 namespace Steam;
 
-require_once "Zend/Loader.php";
-require_once "Zend/Loader/Autoloader.php";
-
 class Loader
 {
-    public static $directories = array();
+    /**
+     * Stores the autoloader instance
+     */
+    public static $autoloader;
     
+    /**
+     * Initializes the standard Zend autoloader and registers required librarlies
+     *
+     * @return void
+     */
     public static function initialize()
     {
-        \Zend_Loader_Autoloader::getInstance()->setDefaultAutoloader(array('\Steam\Loader', 'load'))->registerNamespace('Steam');
+        include \Steam::path('libraries/Zend/Loader/StandardAutoloader.php');
         
-        $libraries = \Steam::config('libraries');
+        $options = array(
+            'autoregister_zf'     => true,
+            'fallback_autoloader' => false,
+            'namespaces'          => array(
+                'Steam'           => \Steam::path('libraries/Steam'),
+            ),
+            'prefixes'            => array(
+                'Minify_'         => \Steam::path('libraries/Minify'),
+            ),
+        );
         
-        foreach ($libraries as $library)
-        {
-            self::register($library, \Steam::path('/libraries/'));
-        }
+        self::$autoloader = new \Zend\Loader\StandardAutoloader($options);
+        
+        self::$autoloader->register();
     }
     
-    public static function register($library, $directory = NULL)
+    /**
+     * Registers an additional namespaced library with the autoloader
+     * @see Steam\Loader::register
+     *
+     * @param string namespace
+     * @return void
+     * @throws Steam\Exception\FileNotFound if library directory cannot be located
+     */
+    public static function registerNamespace($namespace)
     {
-        self::$directories[$library] = $directory;
-        
-        \Zend_Loader_Autoloader::getInstance()->registerNamespace($library);
+        self::register($namespace, 'namespace');
     }
     
-    public static function load($class)
+    /**
+     * Registers an additional prefixed library with the autoloader
+     * @see Steam\Loader::register
+     *
+     * @param string prefix
+     * @return void
+     * @throws Steam\Exception\FileNotFound if library directory cannot be located
+     */
+    public static function registerPrefix($prefix)
     {
-        try
+        self::register($prefix, 'prefix');
+    }
+    
+    /**
+     * Registers an additional library with the autoloader
+     *
+     * @param string namespace or prefix
+     * @param string type: {"namespace", "prefix", "" (autodetect)}
+     * @return void
+     * @throws Steam\Exception\FileNotFound if library directory cannot be located
+     */
+    protected static function register($name, $type = NULL)
+    {
+        if (is_null($type)) $type = (substr($name, -1, 1) == '_') ? 'prefix' : 'namespace';
+        
+        if (!is_dir($library_path = \Steam::app_path('libraries/' . $name)))
         {
-            $directory = NULL;
-            
-            if (!is_numeric(strpos($class, '\\')))
-            {
-                $namespace = substr($class, 0, strpos($class, '_') + 1);
-                
-                if (isset(self::$directories[$namespace]))
-                {
-                    $directory = self::$directories[$namespace];
-                }
-                
-                \Zend_Loader::loadClass($class, $directory);
-            }
-            else
-            {
-                $namespace = substr($class, 0, strpos($class, '\\') + 1);
-                
-                if (class_exists($class, false) or interface_exists($class, false))
-                {
-                    return;
-                }
-                
-                $path = trim(str_replace('\\', '/', $class) . '.php', '/');
-                
-                if (substr($path, 0, 18) == 'Steam/Application/')
-                {
-                    include_once \Steam::path('apps/' . substr($path, 18));
-                }
-                else
-                {
-                    include_once $path;
-                }
-            }
-        }
-        catch (\Exception $exception)
-        {
-            \Steam\Error::exception_handler($exception);
-            
-            return false;
+            if (!is_dir($library_path = \Steam::path('libraries/' . $name)))
+                throw new \Steam\Exception\FileNotFound('Could not locate ' . $name . ' library.');
         }
         
-        return $class;
+        if ($type == 'prefix')
+            self::$autoloader->registerPrefix($name, $library_path);
+        else
+            self::$autoloader->registerNamespace($name, $library_path);
     }
 }
 

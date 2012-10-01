@@ -233,7 +233,7 @@ class Model
                 {
                     if (isset($request->parameters))
                     {
-                        parse_str((string) $request->parameters), $item);
+                        parse_str((string) $request->parameters, $item);
                         $item = (object) $item;
                     }
                     else $item = NULL;
